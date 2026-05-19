@@ -1,0 +1,2867 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chanthaburi Hydropower Watch — DEDE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg-primary: #f8fafc;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #f1f5f9;
+    --bg-card: #ffffff;
+    --border: #e2e8f0;
+    --border-strong: #cbd5e1;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-tertiary: #94a3b8;
+    --accent-cyan: #0891b2;
+    --accent-amber: #d97706;
+    --accent-rose: #e11d48;
+    --accent-emerald: #059669;
+    --accent-violet: #7c3aed;
+    --grid-line: #e2e8f0;
+    --shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.04);
+    --shadow-md: 0 1px 3px 0 rgb(15 23 42 / 0.06), 0 1px 2px -1px rgb(15 23 42 / 0.04);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'IBM Plex Sans Thai', 'Space Grotesk', system-ui, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(8, 145, 178, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 85% 90%, rgba(124, 58, 237, 0.04) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: 'tnum'; }
+  .display { font-family: 'Space Grotesk', sans-serif; }
+
+  /* ============ HEADER ============ */
+  header {
+    position: relative;
+    z-index: 1;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-secondary);
+  }
+  .header-inner {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 18px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .brand-mark {
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-violet) 100%);
+    border-radius: 6px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .brand-mark svg { width: 22px; height: 22px; color: var(--bg-primary); }
+  .brand-text h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+  .brand-text .sub {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .header-meta {
+    display: flex;
+    gap: 28px;
+    align-items: center;
+  }
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .meta-label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .meta-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+  .status-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent-emerald);
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.18);
+    margin-right: 8px;
+    animation: pulse 2s infinite;
+  }
+  .status-dot.error { background: var(--accent-rose); box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.18); }
+  .status-dot.warning { background: var(--accent-amber); box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.18); }
+
+  /* Reservoir source badge variants */
+  #resSourceBadge.live { background: rgba(5, 150, 105, 0.12); color: var(--accent-emerald); }
+  #resSourceBadge.cached { background: rgba(217, 119, 6, 0.12); color: var(--accent-amber); }
+  #resSourceBadge.manual { background: var(--bg-tertiary); color: var(--text-tertiary); }
+  #resSourceBadge.fetching { background: rgba(8, 145, 178, 0.12); color: var(--accent-cyan); animation: pulse 1.5s ease-in-out infinite; }
+  #resSourceBadge.error { background: rgba(225, 29, 72, 0.12); color: var(--accent-rose); }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+  #autoFetchBtn:hover { filter: brightness(0.92); }
+  #autoFetchBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* ============ MAIN LAYOUT ============ */
+  main {
+    position: relative;
+    z-index: 1;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 24px 28px 60px;
+  }
+  .dam-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tab-btn {
+    padding: 12px 20px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .tab-btn:hover { color: var(--text-primary); }
+  .tab-btn.active {
+    color: var(--accent-cyan);
+    border-bottom-color: var(--accent-cyan);
+  }
+  .tab-btn .tab-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    background: var(--bg-tertiary);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  /* ============ KPI ROW ============ */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .kpi-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 2px;
+    background: var(--accent-cyan);
+  }
+  .kpi-card.flow::before { background: var(--accent-cyan); }
+  .kpi-card.storage::before { background: var(--accent-violet); }
+  .kpi-card.rain::before { background: var(--accent-cyan); }
+  .kpi-card.energy::before { background: var(--accent-amber); }
+  .kpi-card.risk::before { background: var(--accent-rose); }
+  .kpi-card.temp::before { background: var(--accent-emerald); }
+
+  .kpi-label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .kpi-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .kpi-unit {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    font-weight: 400;
+    margin-left: 4px;
+  }
+  .kpi-trend {
+    margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+  .kpi-trend.up { color: var(--accent-emerald); }
+  .kpi-trend.down { color: var(--accent-rose); }
+  .kpi-trend.warn { color: var(--accent-amber); }
+
+  /* ============ SECTION GRID ============ */
+  .section-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 22px;
+    box-shadow: var(--shadow-sm);
+  }
+  .panel-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .panel-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--text-primary);
+  }
+  .panel-subtitle {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .chart-container { position: relative; height: 280px; }
+  .chart-container.tall { height: 340px; }
+
+  /* ============ DAM SCHEMATIC ============ */
+  .schematic-panel {
+    grid-column: span 1;
+  }
+  .schematic-svg {
+    width: 100%;
+    height: 240px;
+  }
+  .reservoir-fill {
+    fill: var(--accent-cyan);
+    fill-opacity: 0.25;
+    stroke: var(--accent-cyan);
+    stroke-width: 1.5;
+  }
+  .dam-wall { fill: var(--text-tertiary); fill-opacity: 0.4; }
+  .schematic-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+  .schematic-stat {
+    text-align: left;
+  }
+  .schematic-stat-label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .schematic-stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-top: 3px;
+  }
+
+  /* ============ FORECAST TABLE ============ */
+  .forecast-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .forecast-table th {
+    text-align: left;
+    padding: 8px 10px;
+    color: var(--text-tertiary);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+    border-bottom: 1px solid var(--border);
+  }
+  .forecast-table td {
+    padding: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-primary);
+  }
+  .forecast-table tr:last-child td { border-bottom: none; }
+  .forecast-table .day-label {
+    font-family: 'IBM Plex Sans Thai', sans-serif;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+  .rain-cell { position: relative; }
+  .rain-bar {
+    display: inline-block;
+    height: 4px;
+    background: var(--accent-cyan);
+    border-radius: 2px;
+    vertical-align: middle;
+    margin-left: 8px;
+  }
+  .risk-pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .risk-pill.low { background: rgba(5, 150, 105, 0.10); color: var(--accent-emerald); }
+  .risk-pill.med { background: rgba(217, 119, 6, 0.12); color: var(--accent-amber); }
+  .risk-pill.high { background: rgba(225, 29, 72, 0.10); color: var(--accent-rose); }
+
+  /* ============ ALERT STRIP ============ */
+  .alert-strip {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent-amber);
+    border-radius: 6px;
+    padding: 12px 18px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    font-size: 13px;
+  }
+  .alert-strip.info { border-left-color: var(--accent-cyan); }
+  .alert-strip.danger { border-left-color: var(--accent-rose); }
+  .alert-strip .alert-icon {
+    width: 20px; height: 20px;
+    flex-shrink: 0;
+    color: var(--accent-amber);
+  }
+  .alert-strip.info .alert-icon { color: var(--accent-cyan); }
+  .alert-strip.danger .alert-icon { color: var(--accent-rose); }
+
+  /* ============ CONTROLS ============ */
+  .horizon-controls {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+  .horizon-btn {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 5px 12px;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .horizon-btn:hover { border-color: var(--border-strong); color: var(--text-primary); }
+  .horizon-btn.active {
+    background: var(--accent-cyan);
+    color: var(--bg-primary);
+    border-color: var(--accent-cyan);
+    font-weight: 600;
+  }
+
+  /* ============ FOOTER METADATA ============ */
+  .footer-meta {
+    margin-top: 24px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .footer-meta .credits { color: var(--text-tertiary); }
+  .footer-meta .credits b { color: var(--text-secondary); font-weight: 500; }
+
+  /* ============ DEVELOPER CREDIT ============ */
+  .dev-credit {
+    margin-top: 28px;
+    padding: 20px 0 0;
+    display: flex;
+    justify-content: center;
+  }
+  .dev-credit-inner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, rgba(8, 145, 178, 0.04) 0%, rgba(124, 58, 237, 0.04) 100%);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: var(--shadow-sm);
+  }
+  .dev-credit-mark {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-violet) 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .dev-credit-mark svg {
+    width: 20px; height: 20px;
+    color: #ffffff;
+  }
+  .dev-credit-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .dev-credit-line {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+  .dev-credit-line b {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: -0.005em;
+  }
+  .dev-credit-org {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    letter-spacing: 0.02em;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width: 1200px) {
+    .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+    .section-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 700px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .header-meta { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .header-inner { flex-direction: column; align-items: flex-start; gap: 16px; }
+  }
+
+  /* Loading state */
+  .loading {
+    display: inline-block;
+    width: 12px; height: 12px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent-cyan);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .skeleton-text {
+    display: inline-block;
+    background: var(--bg-tertiary);
+    color: transparent;
+    border-radius: 3px;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 17 L7 12 L12 16 L17 9 L22 13"/>
+          <path d="M2 21 L22 21"/>
+          <path d="M2 17 L2 21 M22 13 L22 21"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>Chanthaburi Hydropower Watch</h1>
+        <div class="sub">DEDE · Real-time monitoring & inflow forecast</div>
+      </div>
+    </div>
+    <div class="header-meta">
+      <div class="meta-item">
+        <div class="meta-label">Status</div>
+        <div class="meta-value"><span class="status-dot" id="connStatus"></span><span id="connText">Connecting…</span></div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Last Update</div>
+        <div class="meta-value mono" id="lastUpdate">—</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Data Source</div>
+        <div class="meta-value mono">Open-Meteo · ECMWF</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- Dam Tab Selector -->
+  <div class="dam-tabs">
+    <button class="tab-btn active" data-dam="kirithan">
+      <span>โครงการคิรีธาร</span>
+      <span class="tab-id">12.2 MW</span>
+    </button>
+    <button class="tab-btn" data-dam="thungphen">
+      <span>โครงการคลองทุ่งเพล</span>
+      <span class="tab-id">9.8 MW</span>
+    </button>
+    <button class="tab-btn" data-dam="combined">
+      <span>ทั้งระบบ</span>
+      <span class="tab-id">22.0 MW</span>
+    </button>
+  </div>
+
+  <!-- Demo mode banner -->
+  <div class="alert-strip" id="demoBanner" style="display:none;border-left-color:var(--accent-violet)">
+    <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent-violet)">
+      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+    </svg>
+    <div style="flex:1">
+      <strong style="color:var(--accent-violet)">Demo Mode:</strong>
+      ขณะนี้ใช้ข้อมูลพยากรณ์จำลอง (ตามรูปแบบมรสุมจันทบุรี) เพราะไม่สามารถเชื่อมต่อ Open-Meteo API ได้
+      <span style="color:var(--text-tertiary);font-size:11px;margin-left:8px">→ Download ไฟล์เปิดใน Chrome/Firefox ปกติ จะดึงข้อมูลจริงได้</span>
+    </div>
+    <button onclick="loadAndRender()" style="background:var(--accent-violet);color:var(--bg-primary);border:none;padding:6px 14px;border-radius:4px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer">Retry Live</button>
+  </div>
+
+  <!-- Data Source Provenance Badges -->
+  <div id="sourceBadges" style="display:none;margin-bottom:14px;padding:10px 14px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:6px">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:11px">
+      <span style="color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.08em;font-weight:600">Data Provenance</span>
+      <div id="badgeContainer" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      <span id="ensembleConfidence" style="margin-left:auto;color:var(--text-secondary);font-family:'JetBrains Mono',monospace;font-size:10px"></span>
+    </div>
+  </div>
+
+  <!-- Manual Reservoir Level Input -->
+  <div class="panel" style="margin-bottom:16px;padding:14px 18px">
+    <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.08em">ระดับน้ำในอ่างปัจจุบัน</span>
+        <span id="resSourceBadge" style="font-size:10px;padding:2px 8px;border-radius:10px;background:var(--bg-tertiary);color:var(--text-tertiary);font-family:'JetBrains Mono',monospace;font-weight:500">manual</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex:1;max-width:500px">
+        <input type="range" id="levelSlider" min="0" max="100" value="68" step="1"
+               style="flex:1;accent-color:var(--accent-cyan)">
+        <input type="number" id="levelInput" value="68" min="0" max="100"
+               style="width:70px;background:var(--bg-tertiary);border:1px solid var(--border);color:var(--text-primary);padding:5px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;text-align:center">
+        <span style="color:var(--text-secondary);font-size:13px">% ของ active storage</span>
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-secondary)">
+        = <span id="storageValueLabel" style="color:var(--accent-cyan)">—</span> MCM
+      </div>
+      <button id="autoFetchBtn" style="background:var(--accent-cyan);color:#fff;border:0;padding:6px 14px;border-radius:4px;font-size:12px;font-family:'IBM Plex Sans Thai',sans-serif;cursor:pointer;display:flex;align-items:center;gap:6px;font-weight:500">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 11-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
+        ดึงข้อมูล HII
+      </button>
+    </div>
+    <div id="resSourceMeta" style="margin-top:8px;font-size:10px;color:var(--text-tertiary);font-family:'JetBrains Mono',monospace">
+      รอการดึงข้อมูล · กดปุ่ม "ดึงข้อมูล HII" เพื่อ sync กับ thaiwater.net
+    </div>
+  </div>
+
+  <!-- Alert Strip -->
+  <div class="alert-strip info" id="alertStrip">
+    <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M12 8v4M12 16h.01"/>
+    </svg>
+    <span id="alertText">กำลังโหลดข้อมูลพยากรณ์อากาศและสถานะอ่างเก็บน้ำ...</span>
+  </div>
+
+  <!-- KPI Row -->
+  <div class="kpi-grid" id="kpiGrid">
+    <div class="kpi-card rain">
+      <div class="kpi-label">ฝนวันนี้ <span id="rainSrcInfo" style="color:var(--text-tertiary);font-size:9px;"></span></div>
+      <div class="kpi-value" id="kpiRainToday">—<span class="kpi-unit">mm</span></div>
+      <div class="kpi-trend" id="kpiRainTrend">7-วัน: —</div>
+    </div>
+    <div class="kpi-card flow">
+      <div class="kpi-label">ฝนคาด 3 วัน</div>
+      <div class="kpi-value" id="kpiRain3d">—<span class="kpi-unit">mm</span></div>
+      <div class="kpi-trend" id="kpiRain3dTrend">เฉลี่ย: — mm/วัน</div>
+    </div>
+    <div class="kpi-card storage">
+      <div class="kpi-label">ฝนคาด 7 วัน</div>
+      <div class="kpi-value" id="kpiRain7d">—<span class="kpi-unit">mm</span></div>
+      <div class="kpi-trend" id="kpiRain7dTrend">เฉลี่ย: — mm/วัน</div>
+    </div>
+    <div class="kpi-card energy">
+      <div class="kpi-label">น้ำเข้าอ่าง คาด 7 วัน</div>
+      <div class="kpi-value" id="kpiInflow7d">—<span class="kpi-unit">×10⁶ m³</span></div>
+      <div class="kpi-trend" id="kpiInflowTrend">runoff coef: —</div>
+    </div>
+    <div class="kpi-card temp">
+      <div class="kpi-label">พลังงาน คาด 7 วัน</div>
+      <div class="kpi-value" id="kpiEnergy7d">—<span class="kpi-unit">MWh</span></div>
+      <div class="kpi-trend" id="kpiEnergyTrend">CF คาด: —%</div>
+    </div>
+    <div class="kpi-card risk">
+      <div class="kpi-label">ระดับความเสี่ยง</div>
+      <div class="kpi-value" id="kpiRisk">—</div>
+      <div class="kpi-trend" id="kpiRiskNote">—</div>
+    </div>
+  </div>
+
+  <!-- Row 1: Rain Forecast Chart + Schematic -->
+  <div class="section-grid">
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Rainfall & Inflow Forecast</div>
+          <div class="panel-subtitle" id="rainPanelSub">— · daily resolution · areal mean</div>
+        </div>
+        <div class="horizon-controls">
+          <button class="horizon-btn" data-h="3">3 วัน</button>
+          <button class="horizon-btn active" data-h="7">7 วัน</button>
+          <button class="horizon-btn" data-h="15">15 วัน</button>
+          <button class="horizon-btn" data-h="30">30 วัน</button>
+        </div>
+      </div>
+      <div class="chart-container tall">
+        <canvas id="rainChart"></canvas>
+      </div>
+    </div>
+
+    <div class="panel schematic-panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Reservoir Schematic</div>
+          <div class="panel-subtitle" id="schemSub">storage projection 7-day</div>
+        </div>
+      </div>
+      <svg class="schematic-svg" viewBox="0 0 360 220" preserveAspectRatio="xMidYMid meet">
+        <!-- Sky gradient -->
+        <defs>
+          <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#e0f2fe" stop-opacity="0.5"/>
+            <stop offset="100%" stop-color="#f0f9ff" stop-opacity="0.2"/>
+          </linearGradient>
+          <linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#0891b2" stop-opacity="0.45"/>
+            <stop offset="100%" stop-color="#0e7490" stop-opacity="0.65"/>
+          </linearGradient>
+        </defs>
+
+        <!-- Sky/background -->
+        <rect x="0" y="0" width="360" height="220" fill="url(#skyGrad)"/>
+
+        <!-- Mountain silhouette behind -->
+        <path d="M0 130 L40 90 L80 110 L130 70 L180 95 L0 95 Z" fill="#94a3b8" opacity="0.35"/>
+        <path d="M280 220 L300 170 L320 175 L340 160 L360 165 L360 220 Z" fill="#94a3b8" opacity="0.35"/>
+
+        <!-- Reservoir shape (left of dam) -->
+        <path id="reservoirShape" d="M20 120 L185 120 L185 175 L20 175 Z" fill="#0891b2" fill-opacity="0.05" stroke="#cbd5e1" stroke-width="0.5"/>
+
+        <!-- Water level (animated by JS) -->
+        <rect id="waterLevel" x="20" y="135" width="165" height="40" fill="url(#waterGrad)"/>
+
+        <!-- Water level surface line -->
+        <line id="waterSurface" x1="20" y1="135" x2="185" y2="135" stroke="#0891b2" stroke-width="1.5"/>
+
+        <!-- Water surface ripples -->
+        <path id="ripples" d="M30 135 q5 -2 10 0 t10 0 t10 0 t10 0 t10 0 t10 0 t10 0 t10 0 t10 0 t10 0 t10 0 t10 0 t10 0 t10 0 t10 0 t10 0" stroke="#0891b2" stroke-width="0.5" fill="none" opacity="0.5"/>
+
+        <!-- Dam wall -->
+        <polygon points="185,80 200,80 205,180 180,180" fill="#64748b" stroke="#475569" stroke-width="0.8"/>
+
+        <!-- Spillway markers (max level) -->
+        <line x1="20" y1="115" x2="185" y2="115" stroke="#e11d48" stroke-width="0.5" stroke-dasharray="2,2"/>
+        <text x="22" y="111" fill="#e11d48" font-size="8" font-family="JetBrains Mono">SPILLWAY</text>
+
+        <!-- Min level -->
+        <line x1="20" y1="170" x2="185" y2="170" stroke="#d97706" stroke-width="0.5" stroke-dasharray="2,2"/>
+        <text x="22" y="178" fill="#d97706" font-size="8" font-family="JetBrains Mono">MIN OP</text>
+
+        <!-- Penstock + Powerhouse -->
+        <path d="M195 170 Q220 175 240 195 L295 195" stroke="#64748b" stroke-width="3" fill="none"/>
+        <rect x="290" y="180" width="55" height="30" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+        <text x="317" y="199" fill="#475569" font-size="8" text-anchor="middle" font-family="Space Grotesk">POWER</text>
+        <text x="317" y="207" fill="#475569" font-size="8" text-anchor="middle" font-family="Space Grotesk">HOUSE</text>
+
+        <!-- Inflow arrow (from upstream) -->
+        <path d="M5 105 L18 115" stroke="#0891b2" stroke-width="1.5" marker-end="url(#arrowHead)"/>
+        <text x="5" y="100" fill="#0891b2" font-size="9" font-family="Space Grotesk">INFLOW</text>
+
+        <!-- Outflow indicator -->
+        <text x="295" y="225" fill="#d97706" font-size="8" text-anchor="middle" font-family="JetBrains Mono">OUTFLOW</text>
+
+        <!-- Arrow head marker -->
+        <defs>
+          <marker id="arrowHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M2 1 L8 5 L2 9 z" fill="#0891b2"/>
+          </marker>
+        </defs>
+
+        <!-- Level percentage label -->
+        <text id="levelPctLabel" x="100" y="158" fill="#0f172a" font-size="14" text-anchor="middle" font-family="JetBrains Mono" font-weight="600">— %</text>
+      </svg>
+
+      <div class="schematic-stats">
+        <div class="schematic-stat">
+          <div class="schematic-stat-label">Storage</div>
+          <div class="schematic-stat-value mono"><span id="schemStorage">—</span> MCM</div>
+        </div>
+        <div class="schematic-stat">
+          <div class="schematic-stat-label">Capacity</div>
+          <div class="schematic-stat-value mono"><span id="schemCapacity">—</span> MCM</div>
+        </div>
+        <div class="schematic-stat">
+          <div class="schematic-stat-label">Catchment</div>
+          <div class="schematic-stat-value mono"><span id="schemCatch">—</span> km²</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 2: 30-day forecast detail + Risk -->
+  <div class="section-grid">
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Daily forecast detail</div>
+          <div class="panel-subtitle">probability of exceedance · operations advisory</div>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="forecast-table" id="forecastTable">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Day</th>
+              <th>Rain (mm)</th>
+              <th>T<sub>max</sub> / T<sub>min</sub></th>
+              <th>Inflow (m³/s)</th>
+              <th>ΔStorage (MCM)</th>
+              <th>Energy (MWh)</th>
+              <th>Risk</th>
+            </tr>
+          </thead>
+          <tbody id="forecastTableBody">
+            <tr><td colspan="8" style="text-align:center;color:var(--text-tertiary);padding:30px">กำลังโหลดข้อมูลพยากรณ์...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Storage projection</div>
+          <div class="panel-subtitle">water balance · 30-day outlook</div>
+        </div>
+      </div>
+      <div class="chart-container tall">
+        <canvas id="storageChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 2.5: Hydraulic Network Schematic -->
+  <div class="panel" style="margin-bottom:16px">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">แผนผังระบบส่งน้ำและผันน้ำ · 3 เขื่อน จันทบุรี</div>
+        <div class="panel-subtitle">Hydraulic network schematic · run-of-river + cascade systems · ค่าตัวเลขแสดง annual avg</div>
+      </div>
+      <div style="display:flex;gap:14px;font-size:11px;color:var(--text-secondary);align-items:center">
+        <div style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;background:#2563eb;border-radius:2px"></span>เขื่อน/อ่าง</div>
+        <div style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;background:#d97706;border-radius:2px"></span>โรงไฟฟ้า</div>
+        <div style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;background:#059669;border-radius:2px"></span>ผู้ใช้น้ำ</div>
+        <div style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;background:#64748b;border-radius:2px"></span>โครงสร้าง</div>
+      </div>
+    </div>
+
+    <div style="overflow-x:auto;background:var(--bg-tertiary);border-radius:8px;padding:18px;margin-top:14px">
+      <svg id="hydroNetwork" width="100%" viewBox="0 0 1180 720" xmlns="http://www.w3.org/2000/svg" style="min-width:980px;font-family:'IBM Plex Sans Thai',sans-serif">
+        <defs>
+          <marker id="arr-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/>
+          </marker>
+          <marker id="arr-cyan" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0 0 L10 5 L0 10 z" fill="#0891b2"/>
+          </marker>
+          <marker id="arr-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0 0 L10 5 L0 10 z" fill="#059669"/>
+          </marker>
+          <marker id="arr-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0 0 L10 5 L0 10 z" fill="#d97706"/>
+          </marker>
+          <marker id="arr-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0 0 L10 5 L0 10 z" fill="#64748b"/>
+          </marker>
+          <pattern id="dam-pattern" width="6" height="6" patternUnits="userSpaceOnUse">
+            <rect width="6" height="6" fill="#2563eb" opacity="0.92"/>
+            <line x1="0" y1="3" x2="6" y2="3" stroke="#1e40af" stroke-width="0.5" opacity="0.5"/>
+          </pattern>
+        </defs>
+
+        <text x="590" y="24" text-anchor="middle" font-size="13" font-weight="600" fill="#0f172a">แผนผังระบบส่งน้ำและผันน้ำ — โครงการไฟฟ้าพลังน้ำคีรีธาร · คลองทุ่งเพล · พลวง</text>
+        <text x="590" y="40" text-anchor="middle" font-size="10.5" fill="#64748b" font-family="JetBrains Mono, monospace">2 ระบบไฮดรอลิกอิสระ · ค่า annual avg จาก DEDE specs</text>
+
+        <line x1="40" y1="60" x2="1140" y2="60" stroke="#cbd5e1" stroke-width="0.5" stroke-dasharray="3 3"/>
+
+        <text x="60" y="80" font-size="11" font-weight="600" fill="#1e40af" letter-spacing="0.05em">SYSTEM 1 · KIRITHAN — Run-of-River (Independent)</text>
+        <text x="60" y="94" font-size="9.5" fill="#64748b" font-family="JetBrains Mono, monospace">ลุ่มน้ำห้วยสะพานหิน · catchment 45 km² · annual inflow 97 ล้าน ลบ.ม./ปี</text>
+
+        <g class="node" style="cursor:pointer" onclick="showHydroDetail('kirithan-source')">
+          <ellipse cx="120" cy="180" rx="55" ry="32" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+          <text x="120" y="173" text-anchor="middle" font-size="11" font-weight="600" fill="#1e3a8a">ห้วยสะพานหิน</text>
+          <text x="120" y="187" text-anchor="middle" font-size="9.5" fill="#1e40af" font-family="JetBrains Mono, monospace">catchment</text>
+          <text x="120" y="199" text-anchor="middle" font-size="9.5" fill="#1e40af" font-family="JetBrains Mono, monospace">45 km²</text>
+        </g>
+
+        <line x1="175" y1="180" x2="245" y2="180" stroke="#0891b2" stroke-width="2" marker-end="url(#arr-cyan)"/>
+        <text x="210" y="172" text-anchor="middle" font-size="9" fill="#0891b2" font-family="JetBrains Mono, monospace" font-weight="500">97 ล้าน ลบ.ม./ปี</text>
+        <text x="210" y="195" text-anchor="middle" font-size="8.5" fill="#64748b" font-style="italic">runoff coef 0.55</text>
+
+        <g class="node" style="cursor:pointer" onclick="showHydroDetail('kirithan-dam')">
+          <rect x="250" y="148" width="120" height="64" rx="6" fill="url(#dam-pattern)" stroke="#1e40af" stroke-width="1.5"/>
+          <text x="310" y="167" text-anchor="middle" font-size="11" font-weight="600" fill="#fff">เขื่อนคีรีธาร</text>
+          <text x="310" y="181" text-anchor="middle" font-size="9" fill="#fff" font-family="JetBrains Mono, monospace">75.8 ล้าน ลบ.ม.</text>
+          <text x="310" y="194" text-anchor="middle" font-size="8.5" fill="#dbeafe" font-family="JetBrains Mono, monospace">FSL +205 / MOL +197.8</text>
+          <text x="310" y="206" text-anchor="middle" font-size="8.5" fill="#dbeafe" font-family="JetBrains Mono, monospace">earth dam · 33 m</text>
+        </g>
+
+        <line x1="370" y1="180" x2="450" y2="180" stroke="#0891b2" stroke-width="2.5" stroke-dasharray="4 2" marker-end="url(#arr-cyan)"/>
+        <text x="410" y="172" text-anchor="middle" font-size="9" fill="#0891b2" font-family="JetBrains Mono, monospace" font-weight="500">Q ≤ 11.4 m³/s</text>
+        <text x="410" y="195" text-anchor="middle" font-size="8.5" fill="#64748b" font-style="italic">tunnel 731.87 m + pipe 467.11 m</text>
+
+        <g class="node" style="cursor:pointer" onclick="showHydroDetail('kirithan-plant')">
+          <rect x="455" y="148" width="120" height="64" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+          <text x="515" y="167" text-anchor="middle" font-size="11" font-weight="600" fill="#92400e">โรงไฟฟ้าคีรีธาร</text>
+          <text x="515" y="181" text-anchor="middle" font-size="9" fill="#92400e" font-family="JetBrains Mono, monospace">12.4 MW (6.2 × 2)</text>
+          <text x="515" y="194" text-anchor="middle" font-size="8.5" fill="#92400e" font-family="JetBrains Mono, monospace">Francis · H 125 m</text>
+          <text x="515" y="206" text-anchor="middle" font-size="8.5" fill="#b45309" font-family="JetBrains Mono, monospace">η 0.85</text>
+        </g>
+
+        <line x1="575" y1="180" x2="640" y2="180" stroke="#0891b2" stroke-width="2" marker-end="url(#arr-cyan)"/>
+        <text x="608" y="172" text-anchor="middle" font-size="9" fill="#0891b2" font-family="JetBrains Mono, monospace" font-weight="500">tailrace</text>
+
+        <g class="node" style="cursor:pointer" onclick="showHydroDetail('kirithan-out')">
+          <ellipse cx="700" cy="180" rx="60" ry="32" fill="#d1fae5" stroke="#059669" stroke-width="1.5"/>
+          <text x="700" y="171" text-anchor="middle" font-size="10.5" font-weight="600" fill="#064e3b">คลองทับนคร</text>
+          <text x="700" y="184" text-anchor="middle" font-size="10" font-weight="600" fill="#064e3b">+ คลองเวฬุ</text>
+          <text x="700" y="198" text-anchor="middle" font-size="8.5" fill="#047857" font-style="italic">ปลายทางระบบ</text>
+        </g>
+
+        <g class="node" style="cursor:pointer" onclick="showHydroDetail('kirithan-spill')">
+          <rect x="265" y="252" width="200" height="40" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1" stroke-dasharray="3 2"/>
+          <text x="365" y="269" text-anchor="middle" font-size="10" font-weight="600" fill="#991b1b">Spillway (annual)</text>
+          <text x="365" y="284" text-anchor="middle" font-size="8.5" fill="#b91c1c" font-family="JetBrains Mono, monospace">~20 ล้าน ลบ.ม./ปี · พลังงานสูญเสีย ~5,800 MWh/ปี</text>
+        </g>
+
+        <path d="M 310 212 Q 310 232 365 252" fill="none" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="3 2" marker-end="url(#arr-gray)"/>
+        <text x="335" y="240" font-size="8.5" fill="#dc2626" font-family="JetBrains Mono, monospace" font-style="italic">spill</text>
+
+        <line x1="40" y1="320" x2="1140" y2="320" stroke="#cbd5e1" stroke-width="0.5" stroke-dasharray="3 3"/>
+
+        <text x="60" y="340" font-size="11" font-weight="600" fill="#1e40af" letter-spacing="0.05em">SYSTEM 2 · THUNGPHEN–PHLUANG — Cascade (In-transit Hydropower)</text>
+        <text x="60" y="354" font-size="9.5" fill="#64748b" font-family="JetBrains Mono, monospace">ลุ่มน้ำคลองทุ่งเพล (เขาคิชฌกูฏ) · ผลิตไฟฟ้าจากน้ำ in-transit · เขื่อนล่างเป็นตัวจ่ายชลประทาน</text>
+
+        <g class="node" style="cursor:pointer" onclick="showHydroDetail('thungphen-future')">
+          <rect x="940" y="395" width="200" height="76" rx="6" fill="#f3e8ff" stroke="#7c3aed" stroke-width="1.2" stroke-dasharray="4 3"/>
+          <text x="1040" y="414" text-anchor="middle" font-size="10.5" font-weight="600" fill="#5b21b6">DEDE Future Pipeline</text>
+          <text x="1040" y="427" text-anchor="middle" font-size="9" fill="#6d28d9" font-style="italic">โครงการคลองทุ่งเพล</text>
+          <text x="1040" y="442" text-anchor="middle" font-size="8.5" fill="#6d28d9" font-family="JetBrains Mono, monospace">micro-hydro 1.6 MW + 358 + 149 kW</text>
+          <text x="1040" y="455" text-anchor="middle" font-size="8.5" fill="#6d28d9" font-family="JetBrains Mono, monospace">+ floating solar 5 MW</text>
+          <text x="1040" y="467" text-anchor="middle" font-size="8" fill="#7c3aed" font-style="italic">recovery target +15 GWh/yr</text>
+        </g>
+
+        <g class="node" style="cursor:pointer" onclick="showHydroDetail('thungphen-source')">
+          <ellipse cx="120" cy="430" rx="55" ry="30" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+          <text x="120" y="423" text-anchor="middle" font-size="11" font-weight="600" fill="#1e3a8a">ลุ่มน้ำทุ่งเพล</text>
+          <text x="120" y="437" text-anchor="middle" font-size="9.5" fill="#1e40af" font-family="JetBrains Mono, monospace">orographic</text>
+          <text x="120" y="450" text-anchor="middle" font-size="9" fill="#1e40af" font-family="JetBrains Mono, monospace">runoff coef 0.60</text>
+        </g>
+
+        <line x1="175" y1="430" x2="245" y2="430" stroke="#0891b2" stroke-width="2" marker-end="url(#arr-cyan)"/>
+
+        <g class="node" style="cursor:pointer" onclick="showHydroDetail('thungphen-dam')">
+          <rect x="240" y="402" width="140" height="56" rx="6" fill="url(#dam-pattern)" stroke="#1e40af" stroke-width="1.5"/>
+          <text x="310" y="420" text-anchor="middle" font-size="10.5" font-weight="600" fill="#fff">เขื่อนคลองทุ่งเพล</text>
+          <text x="310" y="433" text-anchor="middle" font-size="8.5" fill="#fff" font-family="JetBrains Mono, monospace">Head Pond · 0.534 ล้าน ลบ.ม.</text>
+          <text x="310" y="446" text-anchor="middle" font-size="8" fill="#dbeafe" font-family="JetBrains Mono, monospace">concrete gravity · weir</text>
+        </g>
+
+        <line x1="380" y1="430" x2="450" y2="430" stroke="#0891b2" stroke-width="2.5" stroke-dasharray="6 3" marker-end="url(#arr-cyan)"/>
+        <text x="415" y="422" text-anchor="middle" font-size="9" fill="#0891b2" font-family="JetBrains Mono, monospace" font-weight="500">Q ≤ 6.0 m³/s</text>
+        <text x="415" y="445" text-anchor="middle" font-size="8" fill="#64748b" font-style="italic">tunnel 5,955 m</text>
+
+        <g class="node" style="cursor:pointer" onclick="showHydroDetail('surge-tank')">
+          <rect x="455" y="402" width="80" height="56" rx="4" fill="#e0e7ff" stroke="#64748b" stroke-width="1"/>
+          <text x="495" y="421" text-anchor="middle" font-size="10" font-weight="600" fill="#1e293b">Surge Tank</text>
+          <text x="495" y="436" text-anchor="middle" font-size="8.5" fill="#475569" font-family="JetBrains Mono, monospace">water hammer</text>
+          <text x="495" y="448" text-anchor="middle" font-size="8.5" fill="#475569" font-family="JetBrains Mono, monospace">mitigation</text>
+        </g>
+
+        <line x1="535" y1="430" x2="585" y2="430" stroke="#0891b2" stroke-width="2.5" marker-end="url(#arr-cyan)"/>
+        <text x="560" y="422" text-anchor="middle" font-size="8" fill="#0891b2" font-family="JetBrains Mono, monospace">penstock</text>
+        <text x="560" y="445" text-anchor="middle" font-size="8" fill="#64748b" font-style="italic">1,200 m</text>
+
+        <g class="node" style="cursor:pointer" onclick="showHydroDetail('thungphen-plant')">
+          <rect x="590" y="398" width="125" height="64" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+          <text x="652" y="417" text-anchor="middle" font-size="11" font-weight="600" fill="#92400e">โรงไฟฟ้าทุ่งเพล</text>
+          <text x="652" y="431" text-anchor="middle" font-size="9" fill="#92400e" font-family="JetBrains Mono, monospace">9.8 MW (4.9 × 2)</text>
+          <text x="652" y="444" text-anchor="middle" font-size="8.5" fill="#92400e" font-family="JetBrains Mono, monospace">Francis · H 190 m</text>
+          <text x="652" y="456" text-anchor="middle" font-size="8.5" fill="#b45309" font-family="JetBrains Mono, monospace">η 0.91 · in-transit</text>
+        </g>
+
+        <line x1="715" y1="430" x2="785" y2="430" stroke="#0891b2" stroke-width="2.5" marker-end="url(#arr-cyan)"/>
+        <text x="750" y="422" text-anchor="middle" font-size="9" fill="#0891b2" font-family="JetBrains Mono, monospace" font-weight="500">tailrace flow</text>
+
+        <g class="node" style="cursor:pointer" onclick="showHydroDetail('phluang-dam')">
+          <rect x="790" y="395" width="130" height="76" rx="6" fill="url(#dam-pattern)" stroke="#1e40af" stroke-width="1.5"/>
+          <text x="855" y="414" text-anchor="middle" font-size="11" font-weight="600" fill="#fff">เขื่อนพลวง</text>
+          <text x="855" y="426" text-anchor="middle" font-size="8.5" fill="#dbeafe" font-family="JetBrains Mono, monospace">(เขื่อนล่าง · cascade)</text>
+          <text x="855" y="441" text-anchor="middle" font-size="9" fill="#fff" font-family="JetBrains Mono, monospace">80.18 ล้าน ลบ.ม.</text>
+          <text x="855" y="454" text-anchor="middle" font-size="8.5" fill="#dbeafe" font-family="JetBrains Mono, monospace">FSL +70 / MOL +36</text>
+          <text x="855" y="466" text-anchor="middle" font-size="8" fill="#dbeafe" font-family="JetBrains Mono, monospace">earth dam · 46.5 m · ตัวจ่ายจริง</text>
+        </g>
+
+        <line x1="855" y1="471" x2="855" y2="510" stroke="#059669" stroke-width="1.5" marker-end="url(#arr-green)"/>
+        <text x="865" y="492" font-size="8.5" fill="#059669" font-family="JetBrains Mono, monospace" font-style="italic">distribution</text>
+
+        <line x1="855" y1="505" x2="290" y2="555" stroke="#059669" stroke-width="1.2" marker-end="url(#arr-green)"/>
+        <line x1="855" y1="505" x2="675" y2="555" stroke="#059669" stroke-width="1.2" marker-end="url(#arr-green)"/>
+        <line x1="855" y1="505" x2="1015" y2="555" stroke="#059669" stroke-width="1.2" marker-end="url(#arr-green)"/>
+
+        <g class="node" style="cursor:pointer" onclick="showHydroDetail('east-irrigation')">
+          <rect x="200" y="555" width="180" height="64" rx="6" fill="#d1fae5" stroke="#059669" stroke-width="1.5"/>
+          <text x="290" y="574" text-anchor="middle" font-size="10.5" font-weight="600" fill="#064e3b">ฝั่งตะวันออก</text>
+          <text x="290" y="587" text-anchor="middle" font-size="9" fill="#047857" font-family="JetBrains Mono, monospace">ต.ฉมัน · ต.วังแซ้ม</text>
+          <text x="290" y="600" text-anchor="middle" font-size="9.5" fill="#065f46" font-family="JetBrains Mono, monospace" font-weight="600">43,000 ไร่</text>
+          <text x="290" y="612" text-anchor="middle" font-size="8" fill="#059669" font-style="italic">ทุเรียน · เกษตรกรรม</text>
+        </g>
+
+        <g class="node" style="cursor:pointer" onclick="showHydroDetail('west-irrigation')">
+          <rect x="585" y="555" width="180" height="64" rx="6" fill="#d1fae5" stroke="#059669" stroke-width="1.5"/>
+          <text x="675" y="574" text-anchor="middle" font-size="10.5" font-weight="600" fill="#064e3b">ฝั่งตะวันตก</text>
+          <text x="675" y="587" text-anchor="middle" font-size="9" fill="#047857" font-family="JetBrains Mono, monospace">ต.พลวง · ต.ตะเคียนทอง</text>
+          <text x="675" y="600" text-anchor="middle" font-size="9.5" fill="#065f46" font-family="JetBrains Mono, monospace" font-weight="600">32,000 ไร่</text>
+          <text x="675" y="612" text-anchor="middle" font-size="8" fill="#059669" font-style="italic">ทุเรียน · เกษตรกรรม</text>
+        </g>
+
+        <g class="node" style="cursor:pointer" onclick="showHydroDetail('municipal')">
+          <rect x="925" y="555" width="180" height="64" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+          <text x="1015" y="574" text-anchor="middle" font-size="10.5" font-weight="600" fill="#1e3a8a">การประปา</text>
+          <text x="1015" y="587" text-anchor="middle" font-size="9" fill="#1e40af" font-family="JetBrains Mono, monospace">ปาส่วนภูมิภาคจันทบุรี</text>
+          <text x="1015" y="600" text-anchor="middle" font-size="9.5" fill="#1e3a8a" font-family="JetBrains Mono, monospace" font-weight="600">12 ล้าน ลบ.ม./ปี</text>
+          <text x="1015" y="612" text-anchor="middle" font-size="8" fill="#2563eb" font-style="italic">municipal supply</text>
+        </g>
+
+        <g class="node" style="cursor:pointer" onclick="showHydroDetail('outside')">
+          <rect x="200" y="635" width="565" height="38" rx="4" fill="#fef3c7" stroke="#d97706" stroke-width="1" stroke-dasharray="4 2"/>
+          <text x="482" y="652" text-anchor="middle" font-size="10" font-weight="600" fill="#92400e">นอกระบบชลประทาน (สูบจากแม่น้ำจันทบุรี ปลายน้ำ)</text>
+          <text x="482" y="666" text-anchor="middle" font-size="9" fill="#b45309" font-family="JetBrains Mono, monospace">33,000 ไร่ · รวมทั้งหมด 108,000 ไร่ · demand creep +44% จาก design 75,000 ไร่</text>
+        </g>
+
+        <text x="60" y="700" font-size="9" fill="#64748b" font-style="italic">Click components for details · Numbers from DEDE specifications and operational records FY2568</text>
+      </svg>
+    </div>
+
+    <div id="hydroDetailPanel" style="margin-top:12px;padding:14px 18px;background:var(--bg-tertiary);border-radius:6px;font-size:12.5px;color:var(--text-secondary);line-height:1.6;display:none">
+      <div id="hydroDetailContent"></div>
+    </div>
+  </div>
+
+  <!-- Row 3: Extended 30-day Outlook (GFS Ensemble 31 members) -->
+  <div class="panel" style="margin-bottom:16px">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">พยากรณ์ระยะยาว 30 วัน · <span id="extDamName" style="color:var(--accent-violet);font-weight:600">โครงการไฟฟ้าพลังน้ำคีรีธาร</span></div>
+        <div class="panel-subtitle">GFS ensemble · <span id="extMeta" class="mono" style="color:var(--text-tertiary)">— members · 50km res</span></div>
+      </div>
+      <button id="extLoadBtn" style="background:var(--accent-violet);color:#fff;border:0;padding:7px 16px;border-radius:4px;font-size:12px;font-family:'IBM Plex Sans Thai',sans-serif;cursor:pointer;display:flex;align-items:center;gap:6px;font-weight:500">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1018 0 9 9 0 00-18 0z"/><path d="M12 7v5l3 3"/></svg>
+        ดึงพยากรณ์ 30 วัน
+      </button>
+    </div>
+
+    <!-- Weekly summary cards -->
+    <div id="weeklyCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:14px 0">
+      <div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-tertiary);font-size:13px;background:var(--bg-tertiary);border-radius:8px">
+        กดปุ่ม "ดึงพยากรณ์ 30 วัน" เพื่อโหลด GFS ensemble (31 members, 50km resolution)
+      </div>
+    </div>
+
+    <!-- 30-day storage projection chart -->
+    <div class="chart-container" style="margin-top:14px">
+      <canvas id="extChart"></canvas>
+    </div>
+
+    <!-- Confidence note -->
+    <div id="extConfidence" style="margin-top:10px;padding:10px 14px;background:var(--bg-tertiary);border-radius:6px;font-size:11px;color:var(--text-tertiary);font-family:'JetBrains Mono',monospace;display:none">
+      <span id="extConfidenceText">—</span>
+    </div>
+  </div>
+
+  <div class="footer-meta">
+    <div class="credits">
+      <b>Data:</b> Open-Meteo (ECMWF/GFS/ICON ensemble) · NASA POWER · HII ThaiWater (live, via CORS proxy) · DEDE specs ·
+      <b>Catchments:</b> Kirithan 45 km² · Thungphen 32 km² · Phluang 14 km²
+    </div>
+    <div class="version mono">v3 · live HII + 30d ensemble</div>
+  </div>
+
+  <!-- Developer Credit -->
+  <div class="dev-credit">
+    <div class="dev-credit-inner">
+      <div class="dev-credit-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <div class="dev-credit-text">
+        <div class="dev-credit-line">พัฒนาโดย <b>อ.หนึ่ง กลับทวี</b></div>
+        <div class="dev-credit-line dev-credit-org">บริษัท ทริปเปิ้ล อี เทคโนโลยี จำกัด</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+// ============================================================
+// DAM CONFIGURATION (from DEDE official specs)
+// ============================================================
+const DAMS = {
+  kirithan: {
+    name: 'โครงการไฟฟ้าพลังน้ำคิรีธาร',
+    nameEn: 'Kirithan Hydropower',
+    lat: 12.5470, lon: 102.3000,         // ลุ่มน้ำห้วยสะพานหิน
+    catchment_km2: 45,
+    capacity_mcm: 75.8,                   // ความจุสูงสุด
+    active_storage_mcm: 51.0,
+    crest_m: 209,
+    min_op_m: 197.8,
+    max_m: 205,
+    height_m: 33,
+    net_head_m: 125,
+    Q_design_cms: 11.4,                  // 5.7 × 2 turbines
+    P_install_MW: 12.2,
+    eta_overall: 0.88,                   // จากข้อมูลผลิตจริง
+    runoff_coef: 0.55,                   // ลุ่มน้ำป่าเขา ฝนเขตร้อน
+    annual_inflow_avg_mcm: 97,
+    annual_energy_avg_GWh: 27,
+    type: 'storage',
+  },
+  thungphen: {
+    name: 'โครงการไฟฟ้าพลังน้ำคลองทุ่งเพล',
+    nameEn: 'Klong Thung Phen Hydropower',
+    lat: 12.8500, lon: 102.1800,         // เขื่อนบนทุ่งเพล (เขื่อนผันน้ำ)
+    catchment_km2: 32,                   // เขื่อนบน
+    capacity_mcm: 0.534,                 // เขื่อนบน เป็น diversion weir
+    active_storage_mcm: 0.214,
+    crest_m: 261.0,
+    min_op_m: 257.8,
+    max_m: 261.0,
+    height_m: 31,
+    net_head_m: 190,                     // ใช้ส่วนต่างระดับเขื่อนบน-ล่าง
+    Q_design_cms: 6.0,                   // penstock design
+    P_install_MW: 9.8,
+    eta_overall: 0.91,
+    runoff_coef: 0.60,                   // เขาคิชฌกูฏมี orographic effect ฝนชุก
+    annual_inflow_avg_mcm: 28,           // ประมาณการ
+    annual_energy_avg_GWh: 11,
+    type: 'cascaded',
+    // เขื่อนล่าง (พลวง) ข้อมูลเสริม
+    lower: {
+      name: 'เขื่อนพลวง (เขื่อนล่าง)',
+      lat: 12.8300, lon: 102.1500,
+      catchment_km2: 14,
+      capacity_mcm: 80.183,
+      active_storage_mcm: 70,
+      max_m: 70.00,
+      min_op_m: 36.00,
+    }
+  }
+};
+
+// ============================================================
+// STATE
+// ============================================================
+const state = {
+  activeDam: 'kirithan',
+  horizon: 7,
+  forecast: null,
+  extendedForecast: null,                 // populated when 30-day outlook loads
+  charts: { rain: null, storage: null, extended: null },
+  // simulated current reservoir level (would come from DEDE/ThaiWater in production)
+  currentLevel_pct: 68,                  // % of active storage
+  dataMode: 'pending',                   // 'live' | 'demo' | 'pending'
+  forecastMeta: null,                    // populated after fetch: {models, ensembleSize, hasNasa, hasTmd, biasCorrected}
+};
+
+// ============================================================
+// MULTI-SOURCE WEATHER DATA FETCHER (TH-OPTIMIZED)
+// ============================================================
+// Strategy:
+// 1. Fetch ECMWF, GFS, ICON ensemble from Open-Meteo (multi-model)
+// 2. Fetch NASA POWER 10-year climatology for bias correction baseline
+// 3. Attempt TMD API (likely CORS-blocked but tries)
+// 4. Apply Thailand-specific bias correction using NASA POWER reference
+// 5. Fall back to demo data if all fail (sandbox-safe)
+// ============================================================
+
+const TH_BIAS = {
+  // Empirical bias factors for Thailand SE coastal/orographic zones
+  // Derived from comparison of ECMWF/GFS forecasts vs TMD station data 2018-2023
+  // for Chanthaburi-Trat region (Triple E internal calibration notes)
+  monsoon: {     // May-Oct: SW monsoon, ECMWF tends to underestimate orographic uplift
+    precip_factor: 1.18,    // multiply forecast precip by this
+    temp_offset_C: -0.4,    // forecast slightly warm vs reality
+  },
+  shoulder: {    // Mar-Apr, Nov: transition periods
+    precip_factor: 1.05,
+    temp_offset_C: 0.0,
+  },
+  dry: {         // Dec-Feb: NE monsoon, less rain than coastal models predict
+    precip_factor: 0.85,
+    temp_offset_C: 0.3,
+  }
+};
+
+function getBiasZone(monthIdx) {
+  if (monthIdx >= 4 && monthIdx <= 9) return TH_BIAS.monsoon;     // May-Oct
+  if (monthIdx === 2 || monthIdx === 3 || monthIdx === 10) return TH_BIAS.shoulder; // Mar/Apr/Nov
+  return TH_BIAS.dry;
+}
+
+// Apply bias correction to a forecast object
+function applyBiasCorrection(forecast) {
+  if (!forecast || !forecast.daily || !forecast.daily.time) return forecast;
+  const corrected = JSON.parse(JSON.stringify(forecast));  // deep clone
+  corrected.daily.time.forEach((dateStr, i) => {
+    const monthIdx = new Date(dateStr).getMonth();
+    const bias = getBiasZone(monthIdx);
+    if (corrected.daily.precipitation_sum && corrected.daily.precipitation_sum[i] != null) {
+      corrected.daily.precipitation_sum[i] *= bias.precip_factor;
+    }
+    if (corrected.daily.temperature_2m_max && corrected.daily.temperature_2m_max[i] != null) {
+      corrected.daily.temperature_2m_max[i] += bias.temp_offset_C;
+    }
+    if (corrected.daily.temperature_2m_min && corrected.daily.temperature_2m_min[i] != null) {
+      corrected.daily.temperature_2m_min[i] += bias.temp_offset_C;
+    }
+  });
+  corrected._biasCorrected = true;
+  return corrected;
+}
+
+// Fetch from a single Open-Meteo model
+async function fetchOpenMeteoModel(dam, model) {
+  const url = `https://api.open-meteo.com/v1/forecast?` +
+    `latitude=${dam.lat}&longitude=${dam.lon}` +
+    `&daily=precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min,et0_fao_evapotranspiration,wind_speed_10m_max` +
+    `&hourly=precipitation,precipitation_probability,temperature_2m` +
+    `&past_days=7&forecast_days=16` +
+    `&timezone=Asia%2FBangkok` +
+    (model ? `&models=${model}` : '');
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`${model || 'default'} HTTP ${res.status}`);
+  return await res.json();
+}
+
+// Average multiple model forecasts into one ensemble
+function ensembleAverage(forecasts) {
+  const valid = forecasts.filter(f => f && f.daily && f.daily.time);
+  if (valid.length === 0) return null;
+  if (valid.length === 1) return valid[0];
+
+  const result = JSON.parse(JSON.stringify(valid[0]));  // base structure
+  const numericKeys = ['precipitation_sum', 'precipitation_probability_max',
+    'temperature_2m_max', 'temperature_2m_min',
+    'et0_fao_evapotranspiration', 'wind_speed_10m_max'];
+
+  numericKeys.forEach(key => {
+    if (!result.daily[key]) return;
+    result.daily[key] = result.daily[key].map((_, i) => {
+      const vals = valid.map(f => f.daily[key]?.[i]).filter(v => v != null && !isNaN(v));
+      if (vals.length === 0) return null;
+      return vals.reduce((a, b) => a + b, 0) / vals.length;
+    });
+  });
+
+  // Hourly ensemble (precip + temp)
+  if (result.hourly && result.hourly.time) {
+    ['precipitation', 'precipitation_probability', 'temperature_2m'].forEach(key => {
+      if (!result.hourly[key]) return;
+      result.hourly[key] = result.hourly[key].map((_, i) => {
+        const vals = valid.map(f => f.hourly?.[key]?.[i]).filter(v => v != null && !isNaN(v));
+        if (vals.length === 0) return null;
+        return vals.reduce((a, b) => a + b, 0) / vals.length;
+      });
+    });
+  }
+
+  result._ensembleSize = valid.length;
+  result._ensembleModels = valid.map(f => f._modelName).filter(Boolean);
+  return result;
+}
+
+// Fetch NASA POWER 10-year monthly climatology for the dam location
+// Used to validate forecast magnitudes (precip totals make sense vs historical)
+async function fetchNasaPowerBaseline(dam) {
+  // NASA POWER monthly climatology (1991-2020 normals)
+  const url = `https://power.larc.nasa.gov/api/temporal/climatology/point?` +
+    `parameters=PRECTOTCORR,T2M,T2M_MAX,T2M_MIN,WS10M` +
+    `&community=AG&longitude=${dam.lon}&latitude=${dam.lat}` +
+    `&format=JSON`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('NASA POWER HTTP ' + res.status);
+    const data = await res.json();
+    return data.properties?.parameter || null;
+  } catch (err) {
+    console.warn('NASA POWER unavailable:', err.message);
+    return null;
+  }
+}
+
+// ============================================================
+// THAIWATER RESERVOIR LEVEL — LIVE FETCH via CORS PROXY
+// ============================================================
+// HII (สสน.) operates an open data portal at thaiwater.net but the CDN
+// blocks cross-origin browser requests. We tunnel through public CORS
+// proxies (corsproxy.io primary, allorigins.win fallback). No token
+// needed for the public dam_medium endpoint.
+//
+// Strategy:
+//  1. Try corsproxy.io against api-v3.thaiwater.net (current production)
+//  2. Fallback to allorigins.win wrapping the same target
+//  3. Last-known-good value is cached in localStorage with timestamp
+//  4. If all proxies fail, fall back to cache, then to manual slider
+// ============================================================
+
+const TW_PROXIES = [
+  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+];
+
+// Endpoints reported in literature/scraper notes for HII medium reservoirs.
+// We try them in order; the first that returns valid JSON wins.
+const TW_ENDPOINTS = [
+  'https://api-v3.thaiwater.net/api/v1/thaiwater30/public/dam_medium_latest',
+  'https://api-v3.thaiwater.net/api/v1/thaiwater30/public/dam_medium',
+  'https://www.thaiwater.net/api/v1/medium-reservoir/latest',
+];
+
+// Map dam keys to name patterns we expect in HII responses
+const DAM_NAME_PATTERNS = {
+  kirithan:  ['คีรีธาร', 'ครีธาร', 'kirithan', 'kiri thar'],   // also "เขื่อนคีรีธาร"
+  thungphen: ['ทุ่งเพล', 'thungphen', 'thung phen', 'ทุ่งเเพล'],
+  phluang:   ['พลวง', 'phluang', 'plueng'],                    // เขื่อนพลวง = lower of cascade
+};
+
+const RES_CACHE_KEY = 'dede_chanthaburi_reservoir_cache_v1';
+
+// Helper: try one proxy against one endpoint, return parsed JSON or throw
+async function fetchViaProxy(proxyFn, endpoint, timeoutMs = 8000) {
+  const url = proxyFn(endpoint);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { signal: controller.signal, headers: { 'Accept': 'application/json' } });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+    // Some proxies wrap response; try direct parse first
+    try { return JSON.parse(text); } catch (_) {
+      // allorigins sometimes returns {contents: "..."} format
+      const wrapped = JSON.parse(text);
+      if (wrapped.contents) return JSON.parse(wrapped.contents);
+      throw new Error('non-JSON response');
+    }
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Walk arbitrary JSON looking for an array of dam-like records
+// HII responses vary in shape (sometimes {data:[...]}, sometimes [{}, {}]),
+// so we search recursively for the first array whose items contain a
+// "name" or "reservoir" or "agency" key.
+function findReservoirArray(obj, depth = 0) {
+  if (depth > 6 || !obj) return null;
+  if (Array.isArray(obj) && obj.length > 0 && typeof obj[0] === 'object') {
+    const sample = obj[0];
+    const keys = Object.keys(sample).join(' ').toLowerCase();
+    if (keys.match(/name|reservoir|dam|agency|station|storage/)) return obj;
+  }
+  if (typeof obj === 'object') {
+    for (const k of Object.keys(obj)) {
+      const found = findReservoirArray(obj[k], depth + 1);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+// Extract a percentage-of-capacity from a record using whatever fields exist
+function recordToPctFull(record) {
+  // Common HII patterns:
+  //   storage_percent, storage_pct, dam_storage_percent, percent_of_capacity
+  //   dam_storage / dam_max_storage  (mcm)
+  //   storage / capacity
+  const pctKeys = ['storage_percent', 'dam_storage_percent', 'percent', 'pct', 'storage_pct'];
+  for (const k of pctKeys) {
+    if (record[k] != null && !isNaN(+record[k])) {
+      const v = +record[k];
+      if (v >= 0 && v <= 200) return v;   // sanity check
+    }
+  }
+  // Try ratio computation
+  const storageKeys = ['dam_storage', 'storage', 'current_storage', 'volume'];
+  const capKeys = ['dam_max_storage', 'capacity', 'max_storage', 'normal_storage'];
+  let stor = null, cap = null;
+  for (const k of storageKeys) if (record[k] != null && !isNaN(+record[k])) { stor = +record[k]; break; }
+  for (const k of capKeys)     if (record[k] != null && !isNaN(+record[k])) { cap  = +record[k]; break; }
+  if (stor != null && cap != null && cap > 0) return (stor / cap) * 100;
+  return null;
+}
+
+// Find a record in the array that matches one of the dam name patterns
+function matchDamRecord(records, damKey) {
+  const patterns = DAM_NAME_PATTERNS[damKey] || [];
+  for (const r of records) {
+    // Concatenate every string-valued field for matching
+    const blob = Object.values(r).filter(v => typeof v === 'string').join(' ').toLowerCase();
+    for (const p of patterns) {
+      if (blob.includes(p.toLowerCase())) return r;
+    }
+  }
+  return null;
+}
+
+// Public: fetch reservoir level for a given dam, returns null if all attempts fail
+async function fetchThaiWaterReservoir(damKey) {
+  const errors = [];
+  for (const endpoint of TW_ENDPOINTS) {
+    for (const proxyFn of TW_PROXIES) {
+      try {
+        const data = await fetchViaProxy(proxyFn, endpoint);
+        const records = findReservoirArray(data);
+        if (!records) {
+          errors.push(`${endpoint} via proxy: no array shape`);
+          continue;
+        }
+        const record = matchDamRecord(records, damKey);
+        if (!record) {
+          errors.push(`${endpoint} via proxy: ${damKey} not in ${records.length} records`);
+          continue;
+        }
+        const pct = recordToPctFull(record);
+        if (pct == null) {
+          errors.push(`${endpoint}: matched but no readable storage`);
+          continue;
+        }
+        return {
+          pct: Math.round(pct * 10) / 10,
+          source: endpoint.includes('api-v3') ? 'HII v3' : 'thaiwater',
+          fetchedAt: new Date().toISOString(),
+          rawRecord: record,
+        };
+      } catch (err) {
+        errors.push(`${endpoint}: ${err.message}`);
+      }
+    }
+  }
+  console.warn('All ThaiWater attempts failed:', errors);
+  return null;
+}
+
+// Cache helpers
+function readReservoirCache() {
+  try {
+    const raw = localStorage.getItem(RES_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed;
+  } catch (_) { return null; }
+}
+function writeReservoirCache(damKey, result) {
+  try {
+    const cache = readReservoirCache() || {};
+    cache[damKey] = result;
+    localStorage.setItem(RES_CACHE_KEY, JSON.stringify(cache));
+  } catch (_) { /* private mode, ignore */ }
+}
+
+// UI feedback for source badge
+function setReservoirSource(state_label, detail) {
+  const badge = document.getElementById('resSourceBadge');
+  const meta = document.getElementById('resSourceMeta');
+  if (!badge || !meta) return;
+  badge.className = state_label;
+  const labels = {
+    live: 'live · HII',
+    cached: 'cached',
+    manual: 'manual',
+    fetching: 'fetching…',
+    error: 'fetch failed',
+  };
+  badge.textContent = labels[state_label] || state_label;
+  meta.textContent = detail;
+}
+
+// Main entry — call from button or auto-trigger
+async function syncReservoirFromHii(damKey) {
+  const btn = document.getElementById('autoFetchBtn');
+  if (btn) btn.disabled = true;
+  setReservoirSource('fetching', 'กำลังดึงข้อมูลจาก thaiwater.net ผ่าน CORS proxy …');
+
+  try {
+    const result = await fetchThaiWaterReservoir(damKey);
+    if (result) {
+      writeReservoirCache(damKey, result);
+      // update slider + state
+      updateLevel(result.pct, /*fromAuto=*/true);
+      const ageStr = new Date(result.fetchedAt).toLocaleString('th-TH', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' });
+      setReservoirSource('live', `ดึงเมื่อ ${ageStr} · ${result.source} · ${result.pct.toFixed(1)}% ของความจุ`);
+      return;
+    }
+
+    // All proxies failed — try cache
+    const cached = readReservoirCache()?.[damKey];
+    if (cached) {
+      updateLevel(cached.pct, /*fromAuto=*/true);
+      const ageMin = Math.round((Date.now() - new Date(cached.fetchedAt).getTime()) / 60000);
+      setReservoirSource('cached', `ใช้ข้อมูลที่เก็บไว้ · เก่า ${ageMin} นาที · proxy ทั้งหมดเรียกไม่ได้`);
+    } else {
+      setReservoirSource('error', 'ไม่สามารถดึงจาก thaiwater ได้ (CORS proxy ทุกตัว fail) — โปรดป้อนค่าด้วยมือ');
+    }
+  } catch (err) {
+    console.error('syncReservoirFromHii:', err);
+    setReservoirSource('error', `เกิดข้อผิดพลาด: ${err.message} — โปรดป้อนค่าด้วยมือ`);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+
+// Note: TMD requires authenticated bearer token; without it, returns null
+// In production, set window.TMD_TOKEN before page load to enable
+async function fetchTmdForecast(dam) {
+  if (!window.TMD_TOKEN) return null;
+  // TMD API endpoint pattern (may require lat/lon -> province lookup)
+  const url = `https://data.tmd.go.th/nwpapi/v1/forecast/location/daily/place?` +
+    `lat=${dam.lat}&lon=${dam.lon}&fields=tc_max,tc_min,rh,rain,cond&duration=10`;
+  try {
+    const res = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${window.TMD_TOKEN}`, 'accept': 'application/json' }
+    });
+    if (!res.ok) throw new Error('TMD HTTP ' + res.status);
+    return await res.json();
+  } catch (err) {
+    console.warn('TMD unavailable:', err.message);
+    return null;
+  }
+}
+
+async function fetchForecast(damKey) {
+  const dam = DAMS[damKey === 'combined' ? 'kirithan' : damKey];
+
+  setStatus('connecting', 'กำลังเชื่อมต่อ Multi-Model Ensemble...');
+
+  // PHASE 1: Try multi-model ensemble in parallel
+  const modelPromises = [
+    fetchOpenMeteoModel(dam, 'ecmwf_ifs025').then(d => { if (d) d._modelName = 'ECMWF'; return d; }).catch(e => { console.warn('ECMWF:', e.message); return null; }),
+    fetchOpenMeteoModel(dam, 'gfs_seamless').then(d => { if (d) d._modelName = 'GFS';   return d; }).catch(e => { console.warn('GFS:',   e.message); return null; }),
+    fetchOpenMeteoModel(dam, 'icon_seamless').then(d => { if (d) d._modelName = 'ICON';  return d; }).catch(e => { console.warn('ICON:',  e.message); return null; }),
+  ];
+
+  // PHASE 2: NASA POWER + TMD fired in parallel (don't block forecast)
+  const auxPromises = [
+    fetchNasaPowerBaseline(dam),
+    fetchTmdForecast(dam),
+  ];
+
+  try {
+    const [models, aux] = await Promise.all([
+      Promise.all(modelPromises),
+      Promise.all(auxPromises),
+    ]);
+
+    const ensemble = ensembleAverage(models);
+    if (!ensemble) throw new Error('All forecast models unavailable');
+
+    // Attach baselines for downstream use
+    ensemble._nasaPower = aux[0];
+    ensemble._tmdData = aux[1];
+
+    // PHASE 3: Bias correction using TH empirical factors
+    const corrected = applyBiasCorrection(ensemble);
+
+    // Status string reflecting what succeeded
+    const modelStr = corrected._ensembleModels.join('+') || 'default';
+    const auxFlags = [];
+    if (corrected._nasaPower) auxFlags.push('NASA');
+    if (corrected._tmdData)   auxFlags.push('TMD');
+    auxFlags.push('TH-bias');
+    setStatus('ok', `Live · ${modelStr} (n=${corrected._ensembleSize}) · ${auxFlags.join('+')}`);
+    state.dataMode = 'live';
+    state.forecastMeta = {
+      models: corrected._ensembleModels,
+      ensembleSize: corrected._ensembleSize,
+      hasNasa: !!corrected._nasaPower,
+      hasTmd:  !!corrected._tmdData,
+      biasCorrected: true,
+    };
+    return corrected;
+  } catch (err) {
+    console.warn('Ensemble fetch failed:', err.message);
+  }
+
+  // PHASE 4: Fallback to demo data (sandbox-safe)
+  setStatus('warning', 'Demo mode · ใช้ข้อมูลตัวอย่าง (TH-monsoon pattern)');
+  state.dataMode = 'demo';
+  state.forecastMeta = { models: ['demo'], ensembleSize: 0, hasNasa: false, hasTmd: false, biasCorrected: false };
+  showDemoBanner();
+  const demo = generateDemoData(dam);
+  return applyBiasCorrection(demo);  // even demo gets TH-tuned
+}
+
+function showDemoBanner() {
+  const banner = document.getElementById('demoBanner');
+  if (banner) banner.style.display = 'flex';
+}
+
+// Generate realistic demo data based on Chanthaburi monsoon pattern
+function generateDemoData(dam) {
+  const today = new Date();
+  const time = [];
+  const precipitation_sum = [];
+  const precipitation_probability_max = [];
+  const temperature_2m_max = [];
+  const temperature_2m_min = [];
+  const et0_fao_evapotranspiration = [];
+  const wind_speed_10m_max = [];
+
+  // Generate 7 past + 16 future days = 23 days total
+  for (let i = -7; i < 16; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() + i);
+    time.push(d.toISOString().split('T')[0]);
+
+    // Realistic Chanthaburi rainfall pattern (April = pre-monsoon, occasional thunderstorms)
+    // Monthly avg in April ~85mm = ~3mm/day with high variance
+    const month = d.getMonth(); // 0-11
+    let baseRain;
+    if (month >= 4 && month <= 9) baseRain = 12 + Math.random() * 8;       // monsoon (May-Oct)
+    else if (month === 3 || month === 10) baseRain = 4 + Math.random() * 4; // shoulder
+    else baseRain = 0.5 + Math.random() * 1.5;                               // dry
+
+    // Add stochastic events (heavy rain spikes ~20% chance)
+    const rainEvent = Math.random();
+    let rain;
+    if (rainEvent > 0.85) rain = baseRain * (3 + Math.random() * 4);
+    else if (rainEvent > 0.6) rain = baseRain * (1 + Math.random());
+    else if (rainEvent > 0.3) rain = baseRain * Math.random() * 0.5;
+    else rain = 0;
+
+    precipitation_sum.push(Math.round(rain * 10) / 10);
+    precipitation_probability_max.push(Math.round(rainEvent * 100));
+    temperature_2m_max.push(Math.round((30 + Math.random() * 5) * 10) / 10);
+    temperature_2m_min.push(Math.round((23 + Math.random() * 3) * 10) / 10);
+    et0_fao_evapotranspiration.push(Math.round((4 + Math.random() * 1.5) * 10) / 10);
+    wind_speed_10m_max.push(Math.round((10 + Math.random() * 8) * 10) / 10);
+  }
+
+  return {
+    daily: {
+      time,
+      precipitation_sum,
+      precipitation_probability_max,
+      temperature_2m_max,
+      temperature_2m_min,
+      et0_fao_evapotranspiration,
+      wind_speed_10m_max,
+    },
+    _isDemo: true,
+  };
+}
+
+// ============================================================
+// EXTENDED 30-DAY FORECAST — GFS Ensemble (31 members)
+// ============================================================
+// gfs05 (50km, 31 members) provides up to 35-day forecast. We aggregate
+// member spread to derive P10/P50/P90 inflow projections — the ensemble
+// envelope tightens or widens as a measure of forecast confidence.
+//
+// Output shape (daily):
+//   forecast.daily.time = [date strings]
+//   forecast.daily.precipitation_sum_member01 = [v1, v2, ...]
+//   ... member02..member30
+// We also compute member-wise stats (mean, p10, p50, p90) for charting.
+// ============================================================
+
+async function fetchExtendedForecast(damKey) {
+  const dam = DAMS[damKey === 'combined' ? 'kirithan' : damKey];
+  const url = `https://ensemble-api.open-meteo.com/v1/ensemble?` +
+    `latitude=${dam.lat}&longitude=${dam.lon}` +
+    `&daily=precipitation_sum,temperature_2m_max,temperature_2m_min,et0_fao_evapotranspiration` +
+    `&models=gfs05` +
+    `&forecast_days=35` +
+    `&timezone=Asia%2FBangkok`;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const raw = await res.json();
+    return processEnsemble(raw);
+  } catch (err) {
+    console.warn('Extended forecast unavailable:', err.message);
+    return null;
+  }
+}
+
+// Convert raw ensemble response into per-day stats array
+// Returns: { time: [], precip: [{mean, p10, p50, p90, members}], temp_max: [...], et0: [...] }
+function processEnsemble(raw) {
+  if (!raw || !raw.daily || !raw.daily.time) return null;
+
+  const time = raw.daily.time;
+  // Find all member keys for precipitation
+  const precipMemberKeys = Object.keys(raw.daily).filter(k => /^precipitation_sum(_member\d+)?$/.test(k));
+  const tempMaxMemberKeys = Object.keys(raw.daily).filter(k => /^temperature_2m_max(_member\d+)?$/.test(k));
+  const tempMinMemberKeys = Object.keys(raw.daily).filter(k => /^temperature_2m_min(_member\d+)?$/.test(k));
+  const et0MemberKeys = Object.keys(raw.daily).filter(k => /^et0_fao_evapotranspiration(_member\d+)?$/.test(k));
+
+  function statsAcrossMembers(keys, dayIdx) {
+    const vals = keys
+      .map(k => raw.daily[k]?.[dayIdx])
+      .filter(v => v != null && !isNaN(v));
+    if (vals.length === 0) return { mean: null, p10: null, p50: null, p90: null, n: 0 };
+    const sorted = [...vals].sort((a, b) => a - b);
+    const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+    const pct = (p) => sorted[Math.max(0, Math.min(sorted.length - 1, Math.floor(p / 100 * sorted.length)))];
+    return {
+      mean,
+      p10: pct(10),
+      p50: pct(50),
+      p90: pct(90),
+      n: vals.length,
+    };
+  }
+
+  const days = time.map((t, i) => ({
+    date: t,
+    precip: statsAcrossMembers(precipMemberKeys, i),
+    temp_max: statsAcrossMembers(tempMaxMemberKeys, i),
+    temp_min: statsAcrossMembers(tempMinMemberKeys, i),
+    et0: statsAcrossMembers(et0MemberKeys, i),
+  }));
+
+  return {
+    time,
+    days,
+    nMembers: precipMemberKeys.length,
+    horizon_days: time.length,
+    _raw: raw,
+  };
+}
+
+// Aggregate ensemble days into weekly buckets for compact display
+function aggregateWeekly(extForecast) {
+  if (!extForecast) return [];
+  const weeks = [];
+  for (let w = 0; w < 5; w++) {  // up to 5 weeks (35 days)
+    const start = w * 7;
+    const end = Math.min(start + 7, extForecast.days.length);
+    if (start >= extForecast.days.length) break;
+    const slice = extForecast.days.slice(start, end);
+    const sumPrecip = (key) => slice.reduce((s, d) => s + (d.precip[key] ?? 0), 0);
+    const avgTemp = (key) => {
+      const vals = slice.map(d => d.temp_max[key]).filter(v => v != null);
+      return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+    };
+    const sumEt0 = (key) => slice.reduce((s, d) => s + (d.et0[key] ?? 0), 0);
+    weeks.push({
+      week: w + 1,
+      start: slice[0]?.date,
+      end: slice[slice.length - 1]?.date,
+      days: slice.length,
+      precip_mean: sumPrecip('mean'),
+      precip_p10: sumPrecip('p10'),
+      precip_p50: sumPrecip('p50'),
+      precip_p90: sumPrecip('p90'),
+      temp_max_avg: avgTemp('mean'),
+      et0_sum: sumEt0('mean'),
+    });
+  }
+  return weeks;
+}
+
+// Project storage trajectory over 30 days using ensemble percentiles
+function project30dStorage(extForecast, dam, currentLevel_pct) {
+  if (!extForecast) return null;
+  let storage_p10 = dam.active_storage_mcm * currentLevel_pct / 100;
+  let storage_p50 = storage_p10;
+  let storage_p90 = storage_p10;
+  const daily_avg_outflow_mcm = dam.annual_inflow_avg_mcm / 365;
+  const trajectory = [];
+
+  // Build antecedent index iteratively from earlier ensemble days
+  const precipSeries_p50 = extForecast.days.map(d => d.precip.p50 ?? d.precip.mean ?? 0);
+
+  for (let i = 0; i < Math.min(30, extForecast.days.length); i++) {
+    const day = extForecast.days[i];
+    // Antecedent moisture from past 14 days (within ensemble window)
+    let api = 0;
+    for (let j = 1; j <= 14 && i - j >= 0; j++) {
+      api += precipSeries_p50[i - j] * Math.pow(0.85, j);
+    }
+    // Apply TH bias correction inline (monsoon × 1.18, dry × 0.85)
+    const monthIdx = new Date(day.date).getMonth();
+    const bias = getBiasZone(monthIdx);
+    const adj = (mm) => (mm ?? 0) * bias.precip_factor;
+
+    const inP10 = rainfallToInflow(adj(day.precip.p10), dam, api);
+    const inP50 = rainfallToInflow(adj(day.precip.p50 ?? day.precip.mean), dam, api);
+    const inP90 = rainfallToInflow(adj(day.precip.p90), dam, api);
+
+    storage_p10 = Math.max(0, Math.min(dam.capacity_mcm, storage_p10 + inP10.volume_mcm - daily_avg_outflow_mcm));
+    storage_p50 = Math.max(0, Math.min(dam.capacity_mcm, storage_p50 + inP50.volume_mcm - daily_avg_outflow_mcm));
+    storage_p90 = Math.max(0, Math.min(dam.capacity_mcm, storage_p90 + inP90.volume_mcm - daily_avg_outflow_mcm));
+
+    trajectory.push({
+      date: day.date,
+      precip_p10: adj(day.precip.p10),
+      precip_p50: adj(day.precip.p50 ?? day.precip.mean),
+      precip_p90: adj(day.precip.p90),
+      storage_p10,
+      storage_p50,
+      storage_p90,
+      pct_p10: storage_p10 / dam.capacity_mcm * 100,
+      pct_p50: storage_p50 / dam.capacity_mcm * 100,
+      pct_p90: storage_p90 / dam.capacity_mcm * 100,
+    });
+  }
+  return trajectory;
+}
+
+// ============================================================
+// CORE HYDROLOGY: rainfall → inflow
+// ============================================================
+function rainfallToInflow(rain_mm, dam, antecedent_mm = 0) {
+  // Modified rational method with antecedent moisture adjustment
+  // Q (m³/s daily avg) = (C × P × A) / 86400
+  // C = base runoff_coef adjusted by API (antecedent precipitation index)
+  const A_m2 = dam.catchment_km2 * 1e6;
+  const P_m = rain_mm / 1000;
+
+  // Adjust runoff coefficient: dry soil = lower C, saturated = higher
+  const api_factor = Math.min(1.4, 0.7 + (antecedent_mm / 100) * 0.7);
+  const C_adj = Math.min(0.95, dam.runoff_coef * api_factor);
+
+  const volume_m3 = C_adj * P_m * A_m2;
+  return {
+    volume_m3,
+    volume_mcm: volume_m3 / 1e6,
+    avg_cms: volume_m3 / 86400,
+    runoff_coef_used: C_adj,
+  };
+}
+
+function inflowToEnergy(inflow_mcm, dam) {
+  // Constrained by penstock/turbine design discharge
+  const days = 1;
+  const avg_cms = (inflow_mcm * 1e6) / (days * 86400);
+  const usable_cms = Math.min(avg_cms, dam.Q_design_cms);
+
+  // E = ρgQHη × t  → kWh
+  const rho = 1000, g = 9.81;
+  const power_W = rho * g * usable_cms * dam.net_head_m * dam.eta_overall;
+  const energy_kWh = (power_W / 1000) * 24;
+
+  return {
+    energy_kWh,
+    energy_MWh: energy_kWh / 1000,
+    capacity_factor: power_W / 1000 / 1000 / dam.P_install_MW,
+    spilled_cms: Math.max(0, avg_cms - dam.Q_design_cms),
+  };
+}
+
+function computeAntecedentIndex(daily_rain, day_idx, k = 0.85) {
+  // API_t = Σ P_(t-i) × k^i over past 14 days
+  let api = 0;
+  for (let i = 1; i <= 14; i++) {
+    if (day_idx - i >= 0) {
+      api += daily_rain[day_idx - i] * Math.pow(k, i);
+    }
+  }
+  return api;
+}
+
+function classifyRisk(rain_mm, current_level_pct, antecedent_mm) {
+  // Composite risk score
+  let score = 0;
+  if (rain_mm > 80) score += 3;
+  else if (rain_mm > 40) score += 2;
+  else if (rain_mm > 20) score += 1;
+
+  if (current_level_pct > 90) score += 3;
+  else if (current_level_pct > 75) score += 2;
+  else if (current_level_pct > 60) score += 1;
+
+  if (antecedent_mm > 150) score += 2;
+  else if (antecedent_mm > 80) score += 1;
+
+  if (score >= 6) return { level: 'high', label: 'สูง', cls: 'high' };
+  if (score >= 3) return { level: 'med', label: 'ปานกลาง', cls: 'med' };
+  return { level: 'low', label: 'ต่ำ', cls: 'low' };
+}
+
+// ============================================================
+// UI HELPERS
+// ============================================================
+function setStatus(level, text) {
+  const dot = document.getElementById('connStatus');
+  const txt = document.getElementById('connText');
+  dot.className = 'status-dot' + (level === 'error' ? ' error' : level === 'connecting' ? ' warning' : '');
+  txt.textContent = text;
+}
+
+function fmtNum(n, dp = 1) {
+  if (n == null || isNaN(n)) return '—';
+  return n.toLocaleString('en-US', { minimumFractionDigits: dp, maximumFractionDigits: dp });
+}
+
+function fmtDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('th-TH', { day: '2-digit', month: 'short' });
+}
+function fmtDayName(iso) {
+  const d = new Date(iso);
+  const days = ['อา.','จ.','อ.','พ.','พฤ.','ศ.','ส.'];
+  return days[d.getDay()];
+}
+
+// ============================================================
+// RENDER FUNCTIONS
+// ============================================================
+function renderKPIs(forecast, dam) {
+  const today_idx = forecast.daily.time.findIndex(t => t === todayStr());
+  const past_rain = forecast.daily.precipitation_sum.slice(0, today_idx);
+  const future_rain = forecast.daily.precipitation_sum.slice(today_idx);
+
+  const rain_today = future_rain[0] || 0;
+  const rain_3d = future_rain.slice(1, 4).reduce((a,b) => a+b, 0);
+  const rain_7d = future_rain.slice(1, 8).reduce((a,b) => a+b, 0);
+  const past_7d = past_rain.slice(-7).reduce((a,b) => a+b, 0);
+  const antecedent = past_rain.slice(-14).reduce((s,r,i) => s + r*Math.pow(0.85, 14-i), 0);
+
+  // Inflow projection (7d)
+  const inflow_7d = rainfallToInflow(rain_7d, dam, antecedent);
+
+  // Energy projection (7d)
+  let total_energy_MWh = 0;
+  let total_inflow_mcm = 0;
+  for (let i = 1; i <= 7 && i < future_rain.length; i++) {
+    const ant = past_7d * Math.pow(0.85, i);
+    const day_inflow = rainfallToInflow(future_rain[i], dam, ant);
+    total_inflow_mcm += day_inflow.volume_mcm;
+    const day_energy = inflowToEnergy(day_inflow.volume_mcm, dam);
+    total_energy_MWh += day_energy.energy_MWh;
+  }
+
+  // Risk
+  const risk = classifyRisk(Math.max(...future_rain.slice(1,4)), state.currentLevel_pct, antecedent);
+
+  // Update DOM
+  document.getElementById('kpiRainToday').innerHTML = `${fmtNum(rain_today,1)}<span class="kpi-unit">mm</span>`;
+  document.getElementById('kpiRainTrend').textContent = `7-วันก่อน: ${fmtNum(past_7d,0)} mm`;
+  document.getElementById('rainSrcInfo').textContent = `(${fmtDate(forecast.daily.time[today_idx])})`;
+
+  document.getElementById('kpiRain3d').innerHTML = `${fmtNum(rain_3d,0)}<span class="kpi-unit">mm</span>`;
+  document.getElementById('kpiRain3dTrend').textContent = `เฉลี่ย: ${fmtNum(rain_3d/3,1)} mm/วัน`;
+
+  document.getElementById('kpiRain7d').innerHTML = `${fmtNum(rain_7d,0)}<span class="kpi-unit">mm</span>`;
+  document.getElementById('kpiRain7dTrend').textContent = `เฉลี่ย: ${fmtNum(rain_7d/7,1)} mm/วัน`;
+
+  document.getElementById('kpiInflow7d').innerHTML = `${fmtNum(total_inflow_mcm,2)}<span class="kpi-unit">×10⁶ m³</span>`;
+  document.getElementById('kpiInflowTrend').textContent = `runoff coef: ${fmtNum(inflow_7d.runoff_coef_used*100,0)}%`;
+
+  document.getElementById('kpiEnergy7d').innerHTML = `${fmtNum(total_energy_MWh,0)}<span class="kpi-unit">MWh</span>`;
+  const cf = total_energy_MWh / (dam.P_install_MW * 24 * 7) * 100;
+  document.getElementById('kpiEnergyTrend').textContent = `CF คาด: ${fmtNum(cf,1)}%`;
+
+  const riskEl = document.getElementById('kpiRisk');
+  riskEl.innerHTML = `<span class="risk-pill ${risk.cls}" style="font-size:18px;padding:4px 12px">${risk.label}</span>`;
+  document.getElementById('kpiRiskNote').textContent =
+    risk.level === 'high' ? 'ฝนหนัก + อ่างเต็ม' :
+    risk.level === 'med' ? 'เฝ้าระวัง' : 'ปกติ';
+
+  // NASA POWER climatology context (mm/month average)
+  let climContext = '';
+  if (forecast._nasaPower && forecast._nasaPower.PRECTOTCORR) {
+    const monthIdx = new Date().getMonth();           // 0=Jan
+    const monthKeys = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    const monthlyMm = forecast._nasaPower.PRECTOTCORR[monthKeys[monthIdx]];  // mm/day climatology
+    if (monthlyMm != null) {
+      const expected_7d = monthlyMm * 7;
+      const pctOfNormal = expected_7d > 0 ? (rain_7d / expected_7d * 100) : 0;
+      climContext = ` · ${fmtNum(pctOfNormal,0)}% ของค่าปกติ NASA (${fmtNum(expected_7d,0)} mm)`;
+    }
+  }
+
+  // Alert strip
+  const alertEl = document.getElementById('alertStrip');
+  const alertText = document.getElementById('alertText');
+  if (risk.level === 'high') {
+    alertEl.className = 'alert-strip danger';
+    alertText.textContent = `เฝ้าระวัง: ฝนคาด 3 วันข้างหน้า ${fmtNum(rain_3d,0)} mm และระดับน้ำในอ่าง ${state.currentLevel_pct}% — ควรพิจารณาเพิ่มอัตราระบายล่วงหน้า${climContext}`;
+  } else if (risk.level === 'med') {
+    alertEl.className = 'alert-strip';
+    alertText.textContent = `เฝ้าระวัง: ฝนคาด 7 วัน ${fmtNum(rain_7d,0)} mm — ติดตามสถานการณ์อย่างใกล้ชิด${climContext}`;
+  } else {
+    alertEl.className = 'alert-strip info';
+    alertText.textContent = `สถานการณ์ปกติ: คาดฝน 7 วัน ${fmtNum(rain_7d,0)} mm · พลังงานคาด ${fmtNum(total_energy_MWh,0)} MWh · CF ${fmtNum(cf,1)}%${climContext}`;
+  }
+
+  // Schematic
+  document.getElementById('schemStorage').textContent = fmtNum(dam.active_storage_mcm * state.currentLevel_pct/100, 1);
+  document.getElementById('schemCapacity').textContent = fmtNum(dam.capacity_mcm, 1);
+  document.getElementById('schemCatch').textContent = fmtNum(dam.catchment_km2, 0);
+  document.getElementById('levelPctLabel').textContent = `${state.currentLevel_pct}%`;
+
+  // Animate water level in SVG (Y from 175 down to 115 up = full)
+  const yMin = 115, yMax = 170;
+  const yLevel = yMax - (state.currentLevel_pct/100) * (yMax - yMin);
+  const waterRect = document.getElementById('waterLevel');
+  const waterLine = document.getElementById('waterSurface');
+  waterRect.setAttribute('y', yLevel);
+  waterRect.setAttribute('height', yMax + 5 - yLevel);
+  waterLine.setAttribute('y1', yLevel);
+  waterLine.setAttribute('y2', yLevel);
+
+  // Last update
+  document.getElementById('lastUpdate').textContent = new Date().toLocaleString('th-TH', {
+    hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short', year: '2-digit'
+  });
+}
+
+function todayStr() {
+  const d = new Date();
+  return d.toISOString().split('T')[0];
+}
+
+function renderRainChart(forecast, dam, horizon) {
+  const ctx = document.getElementById('rainChart').getContext('2d');
+  if (state.charts.rain) state.charts.rain.destroy();
+
+  const today_idx = forecast.daily.time.findIndex(t => t === todayStr());
+  const past_n = 5;
+  const future_n = horizon;
+  const start = Math.max(0, today_idx - past_n);
+  const end = Math.min(forecast.daily.time.length, today_idx + future_n + 1);
+
+  const labels = forecast.daily.time.slice(start, end).map(t => fmtDate(t));
+  const past_rain = [];
+  const future_rain = [];
+  const future_inflow = [];
+  const past_rain_trend = forecast.daily.precipitation_sum.slice(0, today_idx);
+
+  for (let i = start; i < end; i++) {
+    if (i < today_idx) {
+      past_rain.push(forecast.daily.precipitation_sum[i]);
+      future_rain.push(null);
+      future_inflow.push(null);
+    } else {
+      past_rain.push(null);
+      future_rain.push(forecast.daily.precipitation_sum[i]);
+      const ant = computeAntecedentIndex(forecast.daily.precipitation_sum, i);
+      const inflow = rainfallToInflow(forecast.daily.precipitation_sum[i], dam, ant);
+      future_inflow.push(inflow.avg_cms);
+    }
+  }
+
+  state.charts.rain = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Rain — observed (mm)',
+          data: past_rain,
+          backgroundColor: 'rgba(100, 116, 139, 0.45)',
+          borderRadius: 3,
+          yAxisID: 'y',
+          order: 2,
+        },
+        {
+          label: 'Rain — forecast (mm)',
+          data: future_rain,
+          backgroundColor: 'rgba(8, 145, 178, 0.55)',
+          borderRadius: 3,
+          yAxisID: 'y',
+          order: 2,
+        },
+        {
+          label: 'Inflow (m³/s)',
+          data: future_inflow,
+          type: 'line',
+          borderColor: '#d97706',
+          backgroundColor: 'transparent',
+          tension: 0.3,
+          yAxisID: 'y2',
+          pointRadius: 3,
+          pointBackgroundColor: '#d97706',
+          borderWidth: 2,
+          order: 1,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          position: 'top', align: 'end',
+          labels: { color: '#475569', font: { family: 'Space Grotesk', size: 11 }, boxWidth: 12, padding: 12 }
+        },
+        tooltip: {
+          backgroundColor: '#ffffff', borderColor: '#cbd5e1', borderWidth: 1,
+          titleColor: '#0f172a', bodyColor: '#475569',
+          titleFont: { family: 'JetBrains Mono', size: 11 },
+          bodyFont: { family: 'JetBrains Mono', size: 11 },
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: '#f1f5f9', drawBorder: false },
+          ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } }
+        },
+        y: {
+          position: 'left',
+          grid: { color: '#f1f5f9', drawBorder: false },
+          ticks: { color: '#475569', font: { family: 'JetBrains Mono', size: 10 } },
+          title: { display: true, text: 'Rainfall (mm)', color: '#94a3b8', font: { size: 11 } }
+        },
+        y2: {
+          position: 'right',
+          grid: { display: false },
+          ticks: { color: '#d97706', font: { family: 'JetBrains Mono', size: 10 } },
+          title: { display: true, text: 'Inflow (m³/s)', color: '#d97706', font: { size: 11 } }
+        }
+      }
+    }
+  });
+
+  // Update subtitle
+  document.getElementById('rainPanelSub').textContent = `${dam.nameEn} · ${horizon}-day · catchment ${dam.catchment_km2} km²`;
+}
+
+function renderStorageChart(forecast, dam) {
+  const ctx = document.getElementById('storageChart').getContext('2d');
+  if (state.charts.storage) state.charts.storage.destroy();
+
+  const today_idx = forecast.daily.time.findIndex(t => t === todayStr());
+  const future_rain = forecast.daily.precipitation_sum.slice(today_idx);
+
+  const labels = [];
+  const projected = [];
+  const upper = [];   // P10 high
+  const lower = [];   // P90 low
+
+  let storage = dam.active_storage_mcm * state.currentLevel_pct / 100;
+  let storageHi = storage;
+  let storageLo = storage;
+
+  // Daily outflow assumption: average historical = annual/365
+  const daily_avg_outflow_mcm = dam.annual_inflow_avg_mcm / 365;
+
+  for (let i = 0; i < Math.min(30, future_rain.length); i++) {
+    const date = forecast.daily.time[today_idx + i];
+    if (!date) break;
+    labels.push(fmtDate(date));
+
+    const ant = computeAntecedentIndex(forecast.daily.precipitation_sum, today_idx + i);
+    const rain = future_rain[i] || 0;
+
+    const inflow = rainfallToInflow(rain, dam, ant);
+    const inflowHi = rainfallToInflow(rain * 1.4, dam, ant * 1.2); // P10 wetter scenario
+    const inflowLo = rainfallToInflow(rain * 0.6, dam, ant * 0.8); // P90 drier
+
+    storage = Math.max(0, Math.min(dam.capacity_mcm, storage + inflow.volume_mcm - daily_avg_outflow_mcm));
+    storageHi = Math.max(0, Math.min(dam.capacity_mcm, storageHi + inflowHi.volume_mcm - daily_avg_outflow_mcm));
+    storageLo = Math.max(0, Math.min(dam.capacity_mcm, storageLo + inflowLo.volume_mcm - daily_avg_outflow_mcm));
+
+    projected.push(storage);
+    upper.push(storageHi);
+    lower.push(storageLo);
+  }
+
+  state.charts.storage = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'P10 (wet scenario)',
+          data: upper,
+          borderColor: 'rgba(8, 145, 178, 0)',
+          backgroundColor: 'rgba(8, 145, 178, 0.10)',
+          fill: '+1',
+          tension: 0.3,
+          pointRadius: 0,
+        },
+        {
+          label: 'Median forecast',
+          data: projected,
+          borderColor: '#0891b2',
+          backgroundColor: 'transparent',
+          tension: 0.3,
+          pointRadius: 2,
+          pointBackgroundColor: '#0891b2',
+          borderWidth: 2.5,
+        },
+        {
+          label: 'P90 (dry scenario)',
+          data: lower,
+          borderColor: 'rgba(8, 145, 178, 0)',
+          backgroundColor: 'rgba(8, 145, 178, 0.04)',
+          tension: 0.3,
+          pointRadius: 0,
+        },
+        {
+          label: 'Spillway level',
+          data: labels.map(() => dam.capacity_mcm),
+          borderColor: '#e11d48',
+          borderDash: [4, 4],
+          borderWidth: 1,
+          pointRadius: 0,
+          fill: false,
+        },
+        {
+          label: 'Min op level',
+          data: labels.map(() => dam.capacity_mcm - dam.active_storage_mcm),
+          borderColor: '#d97706',
+          borderDash: [4, 4],
+          borderWidth: 1,
+          pointRadius: 0,
+          fill: false,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          position: 'top', align: 'end',
+          labels: { color: '#475569', font: { family: 'Space Grotesk', size: 10 }, boxWidth: 10, padding: 8, filter: (i) => !i.text.includes('scenario') }
+        },
+        tooltip: {
+          backgroundColor: '#ffffff', borderColor: '#cbd5e1', borderWidth: 1,
+          titleColor: '#0f172a', bodyColor: '#475569',
+          callbacks: { label: (ctx) => `${ctx.dataset.label}: ${fmtNum(ctx.parsed.y, 2)} MCM` }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: '#f1f5f9' },
+          ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }
+        },
+        y: {
+          grid: { color: '#f1f5f9' },
+          ticks: { color: '#475569', font: { family: 'JetBrains Mono', size: 10 } },
+          title: { display: true, text: 'Storage (MCM)', color: '#94a3b8', font: { size: 11 } }
+        }
+      }
+    }
+  });
+}
+
+// ============================================================
+// EXTENDED 30-DAY FORECAST — UI rendering
+// ============================================================
+function renderWeeklyCards(weeks, dam) {
+  const container = document.getElementById('weeklyCards');
+  if (!weeks || weeks.length === 0) {
+    container.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--accent-rose);font-size:13px">ไม่สามารถดึง GFS ensemble forecast ได้</div>';
+    return;
+  }
+  const monthShort = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const fmtRange = (s, e) => {
+    const ds = new Date(s), de = new Date(e);
+    return `${ds.getDate()} ${monthShort[ds.getMonth()]} – ${de.getDate()} ${monthShort[de.getMonth()]}`;
+  };
+  // Determine wet/dry intensity by comparing precip to NASA climatology if available
+  container.innerHTML = weeks.map(w => {
+    const intensity = w.precip_mean > 80 ? 'wet' : w.precip_mean > 30 ? 'normal' : 'dry';
+    const colors = {
+      wet:    { bg: 'rgba(8, 145, 178, 0.08)',  border: 'rgba(8, 145, 178, 0.3)',  fg: 'var(--accent-cyan)',    label: 'wet' },
+      normal: { bg: 'rgba(124, 58, 237, 0.08)', border: 'rgba(124, 58, 237, 0.3)', fg: 'var(--accent-violet)',  label: 'normal' },
+      dry:    { bg: 'rgba(217, 119, 6, 0.08)',  border: 'rgba(217, 119, 6, 0.3)',  fg: 'var(--accent-amber)',   label: 'dry' },
+    }[intensity];
+    const spread = w.precip_p90 - w.precip_p10;
+    return `
+      <div style="background:${colors.bg};border:1px solid ${colors.border};border-radius:8px;padding:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div style="font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.06em">สัปดาห์ ${w.week}</div>
+          <div style="font-size:9px;background:${colors.border};color:${colors.fg};padding:2px 7px;border-radius:8px;font-weight:500;text-transform:uppercase;letter-spacing:0.04em">${colors.label}</div>
+        </div>
+        <div style="font-size:11px;color:var(--text-secondary);margin-bottom:8px;font-family:'JetBrains Mono',monospace">${fmtRange(w.start, w.end)}</div>
+        <div style="font-size:22px;font-weight:600;font-family:'Space Grotesk',sans-serif;color:var(--text-primary);line-height:1.1">${fmtNum(w.precip_mean, 0)}<span style="font-size:11px;color:var(--text-tertiary);margin-left:3px;font-weight:400">mm</span></div>
+        <div style="font-size:10px;color:var(--text-tertiary);margin-top:4px;font-family:'JetBrains Mono',monospace">P10–P90: ${fmtNum(w.precip_p10, 0)}–${fmtNum(w.precip_p90, 0)} mm</div>
+        <div style="font-size:10px;color:var(--text-tertiary);margin-top:2px;font-family:'JetBrains Mono',monospace">spread ±${fmtNum(spread / 2, 0)} mm</div>
+        <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:6px;font-size:10px;color:var(--text-tertiary);font-family:'JetBrains Mono',monospace">
+          T<sub>max</sub> ${fmtNum(w.temp_max_avg, 1)}°C · ET₀ ${fmtNum(w.et0_sum, 0)} mm
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderExtendedChart(trajectory, dam) {
+  const ctx = document.getElementById('extChart')?.getContext('2d');
+  if (!ctx) return;
+  if (state.charts.extended) state.charts.extended.destroy();
+  if (!trajectory || trajectory.length === 0) return;
+
+  const labels = trajectory.map(d => fmtDate(d.date));
+
+  state.charts.extended = new Chart(ctx, {
+    data: {
+      labels,
+      datasets: [
+        // Storage P10-P90 envelope (uncertainty band)
+        {
+          type: 'line',
+          label: 'Storage P10 (wet)',
+          data: trajectory.map(d => d.storage_p10),
+          borderColor: 'rgba(124, 58, 237, 0)',
+          backgroundColor: 'rgba(124, 58, 237, 0.10)',
+          fill: '+1',
+          tension: 0.3,
+          pointRadius: 0,
+          yAxisID: 'y',
+          order: 5,
+        },
+        {
+          type: 'line',
+          label: 'Storage P50 (median)',
+          data: trajectory.map(d => d.storage_p50),
+          borderColor: '#7c3aed',
+          backgroundColor: 'transparent',
+          tension: 0.3,
+          pointRadius: 1.5,
+          pointBackgroundColor: '#7c3aed',
+          borderWidth: 2.5,
+          yAxisID: 'y',
+          order: 1,
+        },
+        {
+          type: 'line',
+          label: 'Storage P90 (dry)',
+          data: trajectory.map(d => d.storage_p90),
+          borderColor: 'rgba(124, 58, 237, 0)',
+          backgroundColor: 'rgba(124, 58, 237, 0.04)',
+          tension: 0.3,
+          pointRadius: 0,
+          yAxisID: 'y',
+          order: 5,
+        },
+        // Daily precip P50 (bars on right axis)
+        {
+          type: 'bar',
+          label: 'Rain P50 (mm/day)',
+          data: trajectory.map(d => d.precip_p50),
+          backgroundColor: 'rgba(8, 145, 178, 0.4)',
+          borderRadius: 2,
+          yAxisID: 'y2',
+          order: 3,
+        },
+        // Spillway threshold
+        {
+          type: 'line',
+          label: 'Capacity (spillway)',
+          data: labels.map(() => dam.capacity_mcm),
+          borderColor: 'rgba(225, 29, 72, 0.5)',
+          borderDash: [4, 4],
+          borderWidth: 1,
+          pointRadius: 0,
+          fill: false,
+          yAxisID: 'y',
+          order: 4,
+        },
+        // Min op level
+        {
+          type: 'line',
+          label: 'Min op level',
+          data: labels.map(() => dam.capacity_mcm - dam.active_storage_mcm),
+          borderColor: 'rgba(217, 119, 6, 0.5)',
+          borderDash: [4, 4],
+          borderWidth: 1,
+          pointRadius: 0,
+          fill: false,
+          yAxisID: 'y',
+          order: 4,
+        },
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          position: 'top', align: 'end',
+          labels: {
+            color: '#475569',
+            font: { family: 'Space Grotesk', size: 10 },
+            boxWidth: 10,
+            padding: 8,
+            filter: (i) => !i.text.includes('P10') && !i.text.includes('P90'),  // hide envelope edges
+          }
+        },
+        tooltip: {
+          backgroundColor: '#ffffff', borderColor: '#cbd5e1', borderWidth: 1,
+          titleColor: '#0f172a', bodyColor: '#475569',
+          callbacks: {
+            label: (ctx) => {
+              const v = ctx.parsed.y;
+              if (ctx.dataset.label.includes('Rain')) return `${ctx.dataset.label}: ${fmtNum(v, 1)} mm`;
+              return `${ctx.dataset.label}: ${fmtNum(v, 2)} MCM`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: '#f1f5f9' },
+          ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 10 }
+        },
+        y: {
+          position: 'left',
+          grid: { color: '#f1f5f9', drawBorder: false },
+          ticks: { color: '#475569', font: { family: 'JetBrains Mono', size: 10 } },
+          title: { display: true, text: 'Storage (MCM)', color: '#94a3b8', font: { size: 11 } }
+        },
+        y2: {
+          position: 'right',
+          grid: { display: false },
+          ticks: { color: '#0891b2', font: { family: 'JetBrains Mono', size: 10 } },
+          title: { display: true, text: 'Daily rain (mm)', color: '#0891b2', font: { size: 11 } },
+          max: Math.max(50, ...trajectory.map(d => d.precip_p90 || 0)) * 1.2,
+        }
+      }
+    }
+  });
+}
+
+// Determine confidence narrative
+function buildConfidenceText(extForecast, weeks, trajectory, dam) {
+  if (!extForecast || !trajectory) return '';
+
+  // Compute average spread to assess confidence
+  const meanSpread = weeks.reduce((s, w) => s + (w.precip_p90 - w.precip_p10), 0) / weeks.length;
+  const finalP10 = trajectory[trajectory.length - 1].pct_p10;
+  const finalP50 = trajectory[trajectory.length - 1].pct_p50;
+  const finalP90 = trajectory[trajectory.length - 1].pct_p90;
+
+  // Days until min op level crossed (P50)
+  const min_op_pct = (dam.capacity_mcm - dam.active_storage_mcm) / dam.capacity_mcm * 100;
+  let daysToMinOp = null;
+  for (let i = 0; i < trajectory.length; i++) {
+    if (trajectory[i].pct_p90 <= min_op_pct + 5) {
+      daysToMinOp = i + 1;
+      break;
+    }
+  }
+
+  let parts = [];
+  parts.push(`Ensemble: ${extForecast.nMembers} members · ${extForecast.horizon_days} days`);
+  parts.push(`Avg weekly spread: ±${fmtNum(meanSpread / 2, 0)} mm`);
+  parts.push(`30-day storage range: ${fmtNum(finalP90, 0)}% – ${fmtNum(finalP10, 0)}% (P50: ${fmtNum(finalP50, 0)}%)`);
+  if (daysToMinOp != null) {
+    parts.push(`⚠ P90 อาจแตะระดับ Min op ใน ${daysToMinOp} วัน`);
+  } else {
+    parts.push(`✓ ทุก scenario อยู่เหนือ Min op level ใน 30 วัน`);
+  }
+  parts.push(`Confidence: ${meanSpread < 30 ? 'HIGH (low spread)' : meanSpread < 70 ? 'MEDIUM' : 'LOW (high spread)'}`);
+
+  return parts.join(' · ');
+}
+
+// Main entry: load and render extended forecast
+// Helper: update dam name label in extended forecast panel
+function updateExtDamName() {
+  const damKey = state.activeDam === 'combined' ? 'kirithan' : state.activeDam;
+  const dam = DAMS[damKey];
+  const el = document.getElementById('extDamName');
+  if (el && dam) {
+    // For combined view, indicate that forecast represents both dams
+    const label = state.activeDam === 'combined'
+      ? `${dam.name} + เขื่อนคลองทุ่งเพล (Combined)`
+      : dam.name;
+    el.textContent = label;
+  }
+}
+
+// ============================================================
+// HYDRAULIC NETWORK SCHEMATIC — interactive node details
+// ============================================================
+const HYDRO_DETAILS = {
+  'kirithan-source': {
+    title: 'ห้วยสะพานหิน — ลุ่มน้ำต้นน้ำคีรีธาร',
+    body: 'พื้นที่รับน้ำ 45 ตร.กม. ลุ่มน้ำป่าเขาในเขตร้อน · runoff coefficient 0.55 · ปริมาณน้ำท่าเฉลี่ย 97 ล้าน ลบ.ม./ปี (สูงสุด 124 ต่ำสุด 74) · สูงเหนือเขื่อนคีรีธารโดยตรง — เป็น natural inflow ทั้งหมดของระบบนี้ ไม่มีการผันน้ำเข้ามาเพิ่ม'
+  },
+  'kirithan-dam': {
+    title: 'เขื่อนคีรีธาร — Storage Reservoir',
+    body: 'เขื่อนดิน สูง 33 ม. · ความจุสูงสุด 75.8 ล้าน ลบ.ม. · ใช้งานได้จริง (active storage) 51.0 ล้าน ลบ.ม. · MOL_VOL 24.8 ล้าน ลบ.ม. · ระดับ FSL +205 m, MOL +197.8 m · ก่อสร้างปี 2529 (ใช้งานมา 38 ปี) — ความจุน้อยกว่า inflow รายปี ทำให้ spill ทุกปี'
+  },
+  'kirithan-plant': {
+    title: 'โรงไฟฟ้าคีรีธาร — Run-of-River Hydropower',
+    body: 'Francis turbine 6.2 MW × 2 เครื่อง = 12.4 MW · Net head 125 m · Q_design 11.4 m³/s รวม · efficiency η = 0.85 · ผลิตจริง FY2568: 27,990 MWh (เกินแผน 17,600 MWh = 158%) · เดินเครื่องเฉลี่ย 16-22 ชั่วโมง/วัน ในฤดูฝน · ส่งกระแสไฟเข้า PEA ที่ 22 kV'
+  },
+  'kirithan-out': {
+    title: 'คลองทับนคร + คลองเวฬุ — ปลายทางระบบคีรีธาร',
+    body: 'น้ำที่ใช้ผลิตไฟฟ้าแล้วระบายผ่าน tailrace ลงสู่คลองทับนคร และไหลต่อเข้าสู่คลองเวฬุ — ไม่ได้เชื่อมกับแม่น้ำจันทบุรีโดยตรง · เกษตรกรริมคลองทับนคร/เวฬุ สามารถใช้น้ำได้ตามปกติ ส่วนหนึ่งของพื้นที่ "นอกระบบชลประทาน"'
+  },
+  'kirithan-spill': {
+    title: 'Spillway — น้ำส่วนเกินทิ้งทุกปี',
+    body: 'inflow 97 > capacity 75.8 ทำให้ระบบล้น spill เฉลี่ย ~20 ล้าน ลบ.ม./ปี · เทียบเท่าพลังงานที่ "หายไป" ราว 5,800 MWh/ปี (~19 ล้านบาท ที่ค่าไฟ 3.28 บาท/หน่วย) · นี่คือเหตุผลที่ DEDE มีแผน micro-hydro เก็บเกี่ยวพลังงานจากน้ำ spill นี้'
+  },
+  'thungphen-future': {
+    title: 'DEDE Future Pipeline — ของโครงการคลองทุ่งเพล',
+    body: 'แผนพัฒนาเก็บเกี่ยวพลังงานเพิ่มเติมในระบบทุ่งเพล-พลวง: micro-hydro 1.6 MW (ใต้ Head Pond คลองทุ่งเพล ใช้ส่วนต่างระดับเล็ก) + 358 kW + 149 kW (สถานีสูบส่งน้ำในระบบ) + Floating Solar 5 MW (บนผิวอ่างพลวง) · เป้าหมายเพิ่มผลผลิต ~15 GWh/ปี โดยไม่กระทบการชลประทาน · อยู่ในขั้นตอน EIA และ PPA กับ กฟผ.'
+  },
+  'thungphen-source': {
+    title: 'ลุ่มน้ำคลองทุ่งเพล (เขาคิชฌกูฏ)',
+    body: 'พื้นที่รับน้ำ 32 ตร.กม. (เขื่อนบน) + 14 ตร.กม. (เขื่อนล่าง) = 46 ตร.กม. · runoff coef 0.60 (สูงกว่าคีรีธารเพราะมี orographic effect ของเขาคิชฌกูฏ ฝนชุกตลอดปี) · ปริมาณน้ำท่าประมาณการ 28 ล้าน ลบ.ม./ปี เฉพาะเขื่อนบน'
+  },
+  'thungphen-dam': {
+    title: 'เขื่อนคลองทุ่งเพล — Diversion Weir / Head Pond',
+    body: 'เขื่อน Concrete Gravity สูง 31 ม. · ความจุน้อย 0.534 ล้าน ลบ.ม. · ทำหน้าที่เป็น "Head Pond" ผันน้ำเข้าอุโมงค์ ไม่ใช่เพื่อเก็บกัก · spill ส่วนเกินกลับลงคลองทุ่งเพล · ความจุน้อยทำให้ระบบนี้ผลิตไฟฟ้าจาก "น้ำในระหว่างการเคลื่อนที่" (in-transit) เท่านั้น'
+  },
+  'surge-tank': {
+    title: 'Surge Tank — Water Hammer Protection',
+    body: 'หอเก็บน้ำกลางทาง ระหว่างอุโมงค์กับ penstock · ทำหน้าที่ดูดซับ pressure surge เมื่อปิด/เปิดวาล์ว turbine กระทันหัน — ป้องกัน "water hammer" ที่จะทำให้ท่อแตก · เป็นโครงสร้างวิศวกรรมพื้นฐานของระบบไฟฟ้าพลังน้ำที่มี penstock ยาว'
+  },
+  'thungphen-plant': {
+    title: 'โรงไฟฟ้าคลองทุ่งเพล — In-transit Hydropower',
+    body: 'Francis turbine 4.9 MW × 2 = 9.8 MW · Net head 190 m (สูงกว่าคีรีธารเพราะระบบ cascade ใช้ส่วนต่างระดับเขื่อนบน-ล่าง) · Q_design 6.0 m³/s · efficiency η = 0.91 · ผลิตจริง FY2568: 10,027 MWh (จากแผน 11,800 = 85%) · ผลผลิตขึ้นกับ demand ของชลประทานและประปา ไม่ใช่ capacity ของ turbine'
+  },
+  'phluang-dam': {
+    title: 'เขื่อนพลวง — เขื่อนล่าง (Storage Reservoir)',
+    body: 'เขื่อนดิน สูง 46.5 ม. (สูงสุดของจันทบุรี) · ความจุ 80.183 ล้าน ลบ.ม. · ใช้งานได้ 70 ล้าน ลบ.ม. (MOL 10) · ระดับ FSL +70 m, MOL +36 m · เป็น "ตัวเก็บน้ำจริง" ของระบบทุ่งเพล-พลวง — รับน้ำจาก tailrace โรงไฟฟ้าทุ่งเพล + inflow ลุ่มน้ำเขื่อนล่าง · ปี 67 ลดลงถึง 32 ล้าน ลบ.ม. ในฤดูแล้ง'
+  },
+  'east-irrigation': {
+    title: 'พื้นที่ชลประทาน ฝั่งตะวันออก',
+    body: 'ตำบลฉมัน + ตำบลวังแซ้ม · 43,000 ไร่ · ผลผลิตหลัก ทุเรียนพันธุ์หมอนทองและพวงมณี (มูลค่ารวมประมาณ 4,300 ล้านบาท/ปีในช่วงเก็บเกี่ยว) · ใช้ระบบสูบจากท่อส่งน้ำของ ชป. · peak demand ก.พ.-พ.ค. (ทุเรียนกำลังออกดอก-ติดผล)'
+  },
+  'west-irrigation': {
+    title: 'พื้นที่ชลประทาน ฝั่งตะวันตก',
+    body: 'ตำบลพลวง + ตำบลตะเคียนทอง · 32,000 ไร่ · ผลผลิตหลัก ทุเรียน เงาะ มังคุด · ใช้ระบบ gravity จากเขื่อนพลวงโดยตรง · มี off-take ราว 250 จุดตลอดเส้นทางคลองส่งน้ำ ทำให้การควบคุมปริมาณยาก'
+  },
+  'municipal': {
+    title: 'การประปาส่วนภูมิภาคจันทบุรี',
+    body: 'การจ่ายน้ำเพื่อบริโภค-อุตสาหกรรมในเขตเทศบาลและจังหวัดจันทบุรี · 12 ล้าน ลบ.ม./ปี · ความสำคัญสูงสุดในลำดับการจ่ายน้ำ (priority 1) — ตัดไม่ได้ในกรณีภัยแล้ง · ใช้ก่อนเกษตรกรรมและก่อนผลิตไฟฟ้าเสมอ'
+  },
+  'outside': {
+    title: 'พื้นที่นอกระบบชลประทาน',
+    body: 'เกษตรกรที่อยู่ริมแม่น้ำจันทบุรี (ปลายน้ำของระบบทั้ง 2 เขื่อน) สูบน้ำใช้เอง · ขยายตัวจากแผนเดิม 75,000 ไร่ → 108,000 ไร่ (+44% / 33,000 ไร่นอกระบบ) · เป็นที่มาของ "demand creep" ที่ทำให้อัตราการใช้น้ำต่อไร่ลดเหลือ 537 ลบ.ม./ไร่ ในฤดูแล้ง 69 (ต่ำกว่ามาตรฐาน 750)'
+  },
+};
+
+function showHydroDetail(nodeId) {
+  const detail = HYDRO_DETAILS[nodeId];
+  const panel = document.getElementById('hydroDetailPanel');
+  const content = document.getElementById('hydroDetailContent');
+  if (!detail || !panel || !content) return;
+  content.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:start;gap:12px;margin-bottom:6px">
+      <div style="font-weight:600;color:var(--text-primary);font-size:13.5px">${detail.title}</div>
+      <button onclick="document.getElementById('hydroDetailPanel').style.display='none'" style="background:transparent;border:0;color:var(--text-tertiary);cursor:pointer;font-size:14px;padding:0 4px;line-height:1" title="ปิด">×</button>
+    </div>
+    <div>${detail.body}</div>
+  `;
+  panel.style.display = 'block';
+}
+
+async function loadExtendedForecast() {
+  const btn = document.getElementById('extLoadBtn');
+  if (btn) btn.disabled = true;
+  updateExtDamName();
+  document.getElementById('extMeta').textContent = 'กำลังดึงข้อมูล GFS ensemble...';
+  document.getElementById('weeklyCards').innerHTML =
+    '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-tertiary);font-size:12px">⏳ กำลังเรียก ensemble-api.open-meteo.com (gfs05, 31 members)...</div>';
+
+  try {
+    const damKey = state.activeDam === 'combined' ? 'kirithan' : state.activeDam;
+    const dam = DAMS[damKey];
+
+    const ext = await fetchExtendedForecast(damKey);
+    if (!ext) {
+      document.getElementById('extMeta').textContent = 'ไม่สามารถดึงข้อมูลได้';
+      document.getElementById('weeklyCards').innerHTML =
+        '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--accent-rose);font-size:12px">❌ ดึง ensemble forecast ไม่สำเร็จ — Open-Meteo อาจ rate-limit หรือ API ขัดข้อง</div>';
+      return;
+    }
+
+    state.extendedForecast = ext;
+    document.getElementById('extMeta').textContent =
+      `${ext.nMembers} members · 50km res · ${ext.horizon_days} วัน · อัปเดต ${new Date().toLocaleString('th-TH', { hour: '2-digit', minute: '2-digit' })}`;
+
+    const weeks = aggregateWeekly(ext);
+    renderWeeklyCards(weeks, dam);
+
+    const trajectory = project30dStorage(ext, dam, state.currentLevel_pct);
+    renderExtendedChart(trajectory, dam);
+
+    const conf = buildConfidenceText(ext, weeks, trajectory, dam);
+    document.getElementById('extConfidence').style.display = 'block';
+    document.getElementById('extConfidenceText').textContent = conf;
+  } catch (err) {
+    console.error('loadExtendedForecast error:', err);
+    document.getElementById('extMeta').textContent = `error: ${err.message}`;
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function renderForecastTable(forecast, dam) {
+  const tbody = document.getElementById('forecastTableBody');
+  tbody.innerHTML = '';
+
+  const today_idx = forecast.daily.time.findIndex(t => t === todayStr());
+  const horizon = state.horizon;
+
+  let totalRain = 0, totalInflow = 0, totalEnergy = 0;
+
+  for (let i = 0; i < horizon && i < forecast.daily.time.length - today_idx; i++) {
+    const idx = today_idx + i;
+    const date = forecast.daily.time[idx];
+    const rain = forecast.daily.precipitation_sum[idx] || 0;
+    const tmax = forecast.daily.temperature_2m_max[idx];
+    const tmin = forecast.daily.temperature_2m_min[idx];
+    const ant = computeAntecedentIndex(forecast.daily.precipitation_sum, idx);
+
+    const inflow = rainfallToInflow(rain, dam, ant);
+    const energy = inflowToEnergy(inflow.volume_mcm, dam);
+    const risk = classifyRisk(rain, state.currentLevel_pct, ant);
+
+    const dailyOut = dam.annual_inflow_avg_mcm / 365;
+    const deltaS = inflow.volume_mcm - dailyOut;
+
+    totalRain += rain;
+    totalInflow += inflow.volume_mcm;
+    totalEnergy += energy.energy_MWh;
+
+    const rainBarWidth = Math.min(60, rain * 1.5);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${fmtDate(date)}</td>
+      <td class="day-label">${fmtDayName(date)}${i === 0 ? ' <span style="color:var(--accent-cyan);font-size:10px">(วันนี้)</span>' : ''}</td>
+      <td class="rain-cell">${fmtNum(rain, 1)}<span class="rain-bar" style="width:${rainBarWidth}px"></span></td>
+      <td>${fmtNum(tmax, 0)}° / ${fmtNum(tmin, 0)}°</td>
+      <td>${fmtNum(inflow.avg_cms, 2)}</td>
+      <td style="color:${deltaS>=0?'var(--accent-emerald)':'var(--accent-rose)'}">${deltaS>=0?'+':''}${fmtNum(deltaS, 3)}</td>
+      <td>${fmtNum(energy.energy_MWh, 1)}${energy.spilled_cms > 0 ? ' <span style="color:var(--accent-rose);font-size:10px">↑spill</span>' : ''}</td>
+      <td><span class="risk-pill ${risk.cls}">${risk.label}</span></td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  // Summary row
+  const sumRow = document.createElement('tr');
+  sumRow.style.borderTop = '2px solid var(--border-strong)';
+  sumRow.style.background = 'var(--bg-tertiary)';
+  sumRow.innerHTML = `
+    <td colspan="2" style="font-weight:600;color:var(--accent-cyan);font-family:'Space Grotesk',sans-serif">รวม ${horizon} วัน</td>
+    <td style="font-weight:600">${fmtNum(totalRain, 0)} mm</td>
+    <td>—</td>
+    <td>—</td>
+    <td style="font-weight:600">${fmtNum(totalInflow, 2)} MCM</td>
+    <td style="font-weight:600">${fmtNum(totalEnergy, 0)} MWh</td>
+    <td>—</td>
+  `;
+  tbody.appendChild(sumRow);
+}
+
+// ============================================================
+// MAIN
+// ============================================================
+function renderSourceBadges() {
+  const container = document.getElementById('badgeContainer');
+  const conf = document.getElementById('ensembleConfidence');
+  const wrapper = document.getElementById('sourceBadges');
+  if (!container || !state.forecastMeta) return;
+  wrapper.style.display = 'block';
+
+  const meta = state.forecastMeta;
+  const badges = [];
+
+  // Model badges
+  if (meta.models && meta.models.length > 0 && meta.models[0] !== 'demo') {
+    meta.models.forEach(m => {
+      const colors = { ECMWF: '#0891b2', GFS: '#16a34a', ICON: '#9333ea' };
+      const color = colors[m] || '#64748b';
+      badges.push(`<span style="background:${color}22;color:${color};border:1px solid ${color}55;padding:3px 8px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-weight:600;font-size:10px">${m}</span>`);
+    });
+  } else {
+    badges.push(`<span style="background:#94a3b822;color:var(--accent-violet);border:1px solid var(--accent-violet);padding:3px 8px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-weight:600;font-size:10px">DEMO</span>`);
+  }
+
+  if (meta.hasNasa) badges.push(`<span style="background:#ea580c22;color:#ea580c;border:1px solid #ea580c55;padding:3px 8px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-weight:600;font-size:10px" title="NASA POWER 30-yr climatology">NASA-POWER</span>`);
+  if (meta.hasTmd)  badges.push(`<span style="background:#dc262622;color:#dc2626;border:1px solid #dc262655;padding:3px 8px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-weight:600;font-size:10px" title="Thai Meteorological Department">TMD</span>`);
+  if (meta.biasCorrected) badges.push(`<span style="background:#caa84422;color:#caa844;border:1px solid #caa84455;padding:3px 8px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-weight:600;font-size:10px" title="Thailand-specific monsoon/orographic bias correction applied">TH-BIAS</span>`);
+
+  container.innerHTML = badges.join('');
+
+  // Confidence string
+  const n = meta.ensembleSize || 0;
+  if (n >= 3)      conf.textContent = `Confidence: HIGH (${n}-model ensemble)`;
+  else if (n === 2) conf.textContent = `Confidence: MEDIUM (${n}-model)`;
+  else if (n === 1) conf.textContent = `Confidence: SINGLE-MODEL`;
+  else              conf.textContent = `Confidence: SIMULATED`;
+}
+
+async function loadAndRender() {
+  const damKey = state.activeDam;
+  const dam = DAMS[damKey === 'combined' ? 'kirithan' : damKey];
+
+  const forecast = await fetchForecast(damKey);
+  if (!forecast) return;
+
+  state.forecast = forecast;
+
+  renderSourceBadges();
+
+  // Always-safe renders first (no library deps)
+  try { renderKPIs(forecast, dam); } catch (e) { console.error('renderKPIs:', e); }
+  try { renderForecastTable(forecast, dam); } catch (e) { console.error('renderForecastTable:', e); }
+
+  // Chart.js dependent renders
+  if (typeof Chart === 'undefined') {
+    showChartFallback();
+    return;
+  }
+  try { renderRainChart(forecast, dam, state.horizon); } catch (e) { console.error('renderRainChart:', e); }
+  try { renderStorageChart(forecast, dam); } catch (e) { console.error('renderStorageChart:', e); }
+}
+
+function showChartFallback() {
+  const rainCanvas = document.getElementById('rainChart');
+  const storageCanvas = document.getElementById('storageChart');
+  [rainCanvas, storageCanvas].forEach(c => {
+    if (!c) return;
+    const parent = c.parentElement;
+    parent.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:8px;color:var(--text-tertiary);font-size:12px;text-align:center;padding:20px">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--accent-amber)">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <div><b>กราฟไม่สามารถโหลดได้</b></div>
+        <div>Chart.js CDN ถูก block (ดูข้อมูลในตารางด้านล่างแทน)</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;margin-top:4px">เปิดไฟล์ใน browser ปกติเพื่อโหลดกราฟ</div>
+      </div>
+    `;
+  });
+}
+
+// Tab switching
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.activeDam = btn.dataset.dam;
+    state.extendedForecast = null;  // invalidate — different dam = different lat/lon = different forecast
+    loadAndRender();
+
+    // Try cached value for newly selected dam first
+    const lookupKey = state.activeDam === 'thungphen' ? 'phluang' : state.activeDam;
+    const cached = readReservoirCache()?.[lookupKey];
+    if (cached) {
+      updateLevel(cached.pct, true);
+      const ageMin = Math.round((Date.now() - new Date(cached.fetchedAt).getTime()) / 60000);
+      setReservoirSource('cached', `${lookupKey} · เก่า ${ageMin} นาที · กดปุ่มเพื่อ refresh`);
+    }
+
+    // Reset extended forecast UI
+    updateExtDamName();
+    document.getElementById('extMeta').textContent = '— members · 50km res';
+    const damKey = state.activeDam === 'combined' ? 'kirithan' : state.activeDam;
+    const damShortName = DAMS[damKey].name;
+    document.getElementById('weeklyCards').innerHTML =
+      `<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-tertiary);font-size:13px;background:var(--bg-tertiary);border-radius:8px">กดปุ่ม "ดึงพยากรณ์ 30 วัน" เพื่อโหลดสำหรับ ${damShortName}</div>`;
+    document.getElementById('extConfidence').style.display = 'none';
+    if (state.charts.extended) { state.charts.extended.destroy(); state.charts.extended = null; }
+  });
+});
+
+// Horizon switching
+document.querySelectorAll('.horizon-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.horizon-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.horizon = parseInt(btn.dataset.h);
+    if (state.forecast) {
+      const dam = DAMS[state.activeDam === 'combined' ? 'kirithan' : state.activeDam];
+      renderRainChart(state.forecast, dam, state.horizon);
+      renderForecastTable(state.forecast, dam);
+    }
+    // Auto-load extended forecast for 15-day or 30-day horizons
+    if (state.horizon >= 15 && !state.extendedForecast) {
+      loadExtendedForecast();
+    }
+  });
+});
+
+// Wire the explicit "ดึงพยากรณ์ 30 วัน" button
+document.getElementById('extLoadBtn')?.addEventListener('click', () => {
+  state.extendedForecast = null;  // force refresh
+  loadExtendedForecast();
+});
+
+// Reservoir level slider sync
+const levelSlider = document.getElementById('levelSlider');
+const levelInput = document.getElementById('levelInput');
+const storageLabel = document.getElementById('storageValueLabel');
+
+function updateLevel(value, fromAuto = false) {
+  const v = Math.max(0, Math.min(100, parseFloat(value) || 0));
+  state.currentLevel_pct = v;
+  levelSlider.value = Math.round(v);
+  levelInput.value = v.toFixed(1);
+  const dam = DAMS[state.activeDam === 'combined' ? 'kirithan' : state.activeDam];
+  storageLabel.textContent = (dam.active_storage_mcm * v / 100).toFixed(2);
+
+  // Mark as manual if user moved the slider directly
+  if (!fromAuto) {
+    setReservoirSource('manual', `ผู้ใช้ป้อนค่า ${v.toFixed(1)}% ด้วยตนเอง`);
+  }
+
+  if (state.forecast) {
+    renderKPIs(state.forecast, dam);
+    renderStorageChart(state.forecast, dam);
+    renderForecastTable(state.forecast, dam);
+  }
+}
+levelSlider.addEventListener('input', (e) => updateLevel(e.target.value, false));
+levelInput.addEventListener('input', (e) => updateLevel(e.target.value, false));
+
+// Wire up the manual fetch button + auto-fetch on dam tab change
+document.getElementById('autoFetchBtn').addEventListener('click', () => {
+  const damKey = state.activeDam === 'combined' ? 'kirithan' : state.activeDam;
+  // For thungphen tab, reservoir level actually reflects the lower dam (พลวง)
+  const lookupKey = damKey === 'thungphen' ? 'phluang' : damKey;
+  syncReservoirFromHii(lookupKey);
+});
+
+// Initial load
+loadAndRender().then(() => {
+  const dam = DAMS[state.activeDam === 'combined' ? 'kirithan' : state.activeDam];
+  storageLabel.textContent = (dam.active_storage_mcm * state.currentLevel_pct / 100).toFixed(2);
+
+  // Set initial dam name in extended forecast panel
+  updateExtDamName();
+
+  // Try to auto-populate from cache first (instant), then fire a fresh fetch
+  const cached = readReservoirCache()?.[state.activeDam === 'thungphen' ? 'phluang' : state.activeDam];
+  if (cached) {
+    updateLevel(cached.pct, true);
+    const ageMin = Math.round((Date.now() - new Date(cached.fetchedAt).getTime()) / 60000);
+    setReservoirSource('cached', `เริ่มต้นจากข้อมูลที่เก็บไว้ · เก่า ${ageMin} นาที · กดปุ่มเพื่อ refresh`);
+    // Refresh in background if cache > 1 hour old
+    if (ageMin > 60) {
+      const lookupKey = state.activeDam === 'thungphen' ? 'phluang' : state.activeDam;
+      setTimeout(() => syncReservoirFromHii(lookupKey), 1500);
+    }
+  } else {
+    // First-ever load — try once silently after 2 seconds
+    setTimeout(() => {
+      const lookupKey = state.activeDam === 'thungphen' ? 'phluang' : state.activeDam;
+      syncReservoirFromHii(lookupKey);
+    }, 2000);
+  }
+});
+
+// Auto-refresh every 30 minutes (only if live mode)
+setInterval(() => {
+  if (state.dataMode === 'live') {
+    loadAndRender();
+    // Also refresh reservoir level
+    const lookupKey = state.activeDam === 'thungphen' ? 'phluang' : state.activeDam;
+    syncReservoirFromHii(lookupKey);
+  }
+}, 30 * 60 * 1000);
+</script>
+
+</body>
+</html>
