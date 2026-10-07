@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hydro Operations Planner — คีรีธาร · คลองทุ่งเพล · บ้านพลวง</title>
 <meta name="description" content="เครื่องมือวางแผนและบริหารโครงการไฟฟ้าพลังน้ำ พพ. จ.จันทบุรี: สรุปเช้า พยากรณ์ฝน ฝน-น้ำท่า สมดุลน้ำอ่าง rule curve วางแผนผลิตไฟฟ้า TOU ชลประทาน/สถานีสูบ EP ไฟฟ้าใช้ภายใน บันทึกประจำวัน ทะเบียนคำสั่ง KPI">
-<!-- Hydro Operations Planner v1.1.0 — Triple E Technology Co., Ltd. · พัฒนาโดย อ.หนึ่ง กลับทวี · สร้าง 6 ต.ค. 2569 -->
+<!-- Hydro Operations Planner v1.2.0 — Triple E Technology Co., Ltd. · พัฒนาโดย อ.หนึ่ง กลับทวี · สร้าง 6 ต.ค. 2569 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -129,6 +129,13 @@ table.sheettbl th{white-space:normal;font-size:11px}
 @page sheetpg{size:A4 landscape;margin:8mm}
 @media print{.sheet{page:sheetpg;border:none!important;padding:0!important}.sheet .tw{overflow:visible;border:none}.sheet table.sheettbl{table-layout:fixed;width:100%}.sheet table.sheettbl.hr th,.sheet table.sheettbl.hr td{font-size:8.5px;padding:2px 3px;line-height:1.25}.sheet table.sheettbl.hr td{height:19px}.sheet table.sheettbl.hr th:first-child{width:38px}
  details.tabguide,details.colhelp,.hq{display:none!important}.hdet{display:none!important}.sheet h3.pb{break-before:page}table.sheettbl{font-size:10px}table.sheettbl th,table.sheettbl td{border:1px solid #999}.lt,input.lv-warn,input.lv-alarm,tr.r-alarm td,tr.r-warn td{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+/* ---------- v1.2: แผนผัง · โหมดสาธิต ---------- */
+.figrow{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}.figcol{flex:0 0 auto;min-width:0}.figcol.wide{flex:1 1 420px;display:flex;flex-direction:column;gap:10px}
+.figcard svg{margin:4px 0}
+.figgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px 16px;margin-top:8px}.limcell{min-width:0}
+.demobar{background:#fff4d6;border:1px solid #e0a400;border-radius:12px;padding:8px 12px;margin-bottom:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px}
+.democard.on{outline:3px solid var(--teal)}
+@media(max-width:640px){.figcol{flex:1 1 100%}.figcol svg{max-width:100%}}
 /* ---------- print ---------- */
 @media print{
   @page{size:A4;margin:10mm}
@@ -149,7 +156,7 @@ table.sheettbl th{white-space:normal;font-size:11px}
   <div class="top-row">
     <div class="brand">
       <h1>Hydro Operations Planner</h1>
-      <div class="sub">วางแผน–บริหารโครงการไฟฟ้าพลังน้ำ พพ. จ.จันทบุรี · คีรีธาร · คลองทุ่งเพล + เขื่อนบ้านพลวง/สถานีสูบ EP · v1.1.0</div>
+      <div class="sub">วางแผน–บริหารโครงการไฟฟ้าพลังน้ำ พพ. จ.จันทบุรี · คีรีธาร · คลองทุ่งเพล + เขื่อนบ้านพลวง/สถานีสูบ EP · v1.2.0</div>
     </div>
     <div class="top-ctl">
       <select id="siteSel" aria-label="เลือกโครงการ" title="เลือกโครงการ">
@@ -162,6 +169,7 @@ table.sheettbl th{white-space:normal;font-size:11px}
       <label class="btnf" title="เปิดไฟล์ JSON ของเครื่องมือนี้ หรือไฟล์ assessment.json จาก Hydro Turbine / Pump Station Assessment (เลือกหลายไฟล์ได้)">📂 เปิด/นำเข้า<input type="file" id="fileIn" accept=".json,application/json" multiple hidden></label>
       <button type="button" onclick="window.print()" title="พิมพ์แท็บที่เปิดอยู่">🖨 พิมพ์</button>
       <button type="button" onclick="toggleHints()" title="แสดง/ซ่อนคำอธิบายช่องกรอก">💬</button>
+      <button type="button" onclick="goTab('demo')" title="ทดลองกับข้อมูลสมมติ">🧪 สาธิต</button>
       <button type="button" onclick="goTab('help')" title="คู่มือการใช้งาน">❓ วิธีใช้</button>
     </div>
   </div>
@@ -181,10 +189,11 @@ table.sheettbl th{white-space:normal;font-size:11px}
   <section class="panel" id="p-ord"></section>
   <section class="panel" id="p-kpi"></section>
   <section class="panel" id="p-ctl"></section>
+  <section class="panel" id="p-demo"></section>
   <section class="panel" id="p-help"></section>
 </main>
 <div class="foot">
-  Hydro Operations Planner v1.1.0 · Triple E Technology Co., Ltd. · พัฒนาโดย อ.หนึ่ง กลับทวี สำหรับโครงการ พพ. (DEDE) · ข้อมูลทั้งหมดเก็บในเบราว์เซอร์เครื่องนี้ (localStorage) — กด 💾 เพื่อสำรองเป็นไฟล์ และส่งต่อให้เครื่องอื่น ·
+  Hydro Operations Planner v1.2.0 · Triple E Technology Co., Ltd. · พัฒนาโดย อ.หนึ่ง กลับทวี สำหรับโครงการ พพ. (DEDE) · ข้อมูลทั้งหมดเก็บในเบราว์เซอร์เครื่องนี้ (localStorage) — กด 💾 เพื่อสำรองเป็นไฟล์ และส่งต่อให้เครื่องอื่น ·
   พยากรณ์อากาศจาก <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> (CC BY 4.0) — ใช้ประกอบการตัดสินใจเท่านั้น ประกาศเตือนภัยทางการให้ยึดกรมอุตุนิยมวิทยา / สทนช. / ปภ. และคำสั่งผู้มีอำนาจ
 </div>
 <script>
@@ -199,7 +208,7 @@ const SEED_EP={"tool":"PumpStation_Assessment","ver":"1.4","fields":{"stName":"�
    สถาปัตยกรรม: state (object เดียว) = แหล่งข้อมูลจริง · ช่องกรอกผูกด้วย data-b="path"
    แก้ค่า → debounce 400 ms → recalcAll() → อัปเดตผลแท็บที่เปิด + บันทึก localStorage
    ================================================================ */
-const APP_VER='1.1.0', LS_KEY='TE_HydroOps_v1';
+const APP_VER='1.2.0', LS_KEY='TE_HydroOps_v1';
 const RHO=998, G=9.81, NU=1.004e-6;          // น้ำ 25 °C: kg/m³, m/s², m²/s
 const MCM=1e6;                              // 1 ล้าน ลบ.ม. = 1e6 m³
 const TH_M=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
@@ -1814,6 +1823,305 @@ UPDATE.help=function(){};
 (function(){const mo=new MutationObserver(()=>{cancelAnimationFrame(_hpRaf);_hpRaf=requestAnimationFrame(applyHelp)});
   const start=()=>{const m=document.querySelector('main');if(m)mo.observe(m,{childList:true,subtree:true});applyHelp()};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start()})();
+
+/* ================================================================
+   v1.2 ADD-ON — (1) แผนผัง/รูป/กราฟประกอบความเข้าใจ (SVG สด ตามค่าที่กรอก)
+                 (2) โหมดจำลองสถานการณ์ด้วยข้อมูลสมมติ 3 ชุด (ไม่ทับข้อมูลจริง)
+   ================================================================ */
+const SVGF="font-family:'IBM Plex Sans Thai',Tahoma,sans-serif";
+function sx(v,d){return isNum(v)?fmt(v,d==null?0:d):'–'}
+function svgWrap(w,h,inner,label){return `<svg viewBox="0 0 ${w} ${h}" width="100%" style="max-width:${w}px;height:auto;display:block;${SVGF}" role="img" aria-label="${esc(label||'แผนผัง')}">${inner}</svg>`}
+function arrowDefs(id,col){return `<defs><marker id="${id}" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="${col}"/></marker></defs>`}
+function simOf(k){return RES&&RES.sim&&RES.sim[k]}
+
+/* ---------- 1) แผนผังทางน้ำตามยาว (head รวม / head loss / head สุทธิ) ---------- */
+function svgProfile(k){const s=S.sites[k];if(!s.units||!s.units.length)return '';const sim=simOf(k);const lvl=sim?sim.st.h:+s.level;
+  const U=s.units.filter(u=>u.on!==false);const n=Math.max(1,U.length);const u0=U[0]||s.units[0];const Qd=n*(+u0.qr);
+  const p=plantP(s,lvl,Qd,n);const tw=p.tw,hl=p.hl,Hg=lvl-tw,Hn=p.Hn,SE=p.P/(Qd*3600);const w=s.hyd;
+  const yL=78,yT=282,span=yT-yL;const hlpx=clamp(hl/Math.max(Hg,1)*span,4,90);const yE=yL+hlpx;
+  const yF=yL-Math.min(14,Math.max(4,(+s.fsl-lvl)*6)),yM=yL+38;
+  let g=arrowDefs('arP','#0f2a4a');
+  g+=`<rect x="0" y="0" width="780" height="330" fill="#f7fbff" rx="10"/>`;
+  g+=`<path d="M20,${yL-30} L20,215 L232,215 L232,${yL-30}" fill="none" stroke="#8a7a5c" stroke-width="2"/>`;
+  g+=`<rect x="21" y="${yL}" width="210" height="${215-yL}" fill="#7fc4e8" opacity=".75"/>`;
+  g+=`<path d="M21,${yL} q20,-4 40,0 t40,0 t40,0 t40,0 t40,0" fill="none" stroke="#2a7fb8" stroke-width="1.5"/>`;
+  g+=`<polygon points="232,${yL-34} 256,${yL-34} 300,218 232,218" fill="#b9b2a3" stroke="#6d6556"/>`;
+  g+=`<text x="244" y="${yL-40}" font-size="11" text-anchor="middle" fill="#4a4436">เขื่อน/ฝาย</text>`;
+  g+=`<line x1="20" y1="${yF}" x2="232" y2="${yF}" stroke="#d1233a" stroke-dasharray="5 3"/><text x="24" y="${yF-4}" font-size="11" fill="#a3172f">FSL/สันฝาย ${sx(+s.fsl,2)}</text>`;
+  g+=`<line x1="20" y1="${yM}" x2="232" y2="${yM}" stroke="#9a5008" stroke-dasharray="5 3"/><text x="24" y="${yM+13}" font-size="11" fill="#7a3f06">MOL ${sx(+s.mol,2)} (ระยะไม่ตามมาตราส่วน)</text>`;
+  g+=`<text x="128" y="${yL+20}" font-size="13" font-weight="700" fill="#0b3d66" text-anchor="middle">อ่าง: ระดับ ${sx(lvl,2)} ม.รทก.</text>`;
+  g+=`<rect x="214" y="168" width="18" height="30" fill="#5d6b78"/><text x="200" y="164" font-size="10.5" text-anchor="end" fill="#33414f">ทางรับน้ำ+ตะแกรง</text>`;
+  g+=`<path d="M300,190 L520,200" stroke="#4d5b69" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M300,190 L520,200" stroke="#7fc4e8" stroke-width="5" fill="none"/>`;
+  g+=`<text x="410" y="222" font-size="11" text-anchor="middle" fill="#33414f">${k==='tp'?'อุโมงค์/ท่อส่งน้ำ':'อุโมงค์/ท่อช่วงที่ 1'} ยาว ${sx(+w.w1L)} ม. Ø ${sx(+w.w1D,2)} ม.</text>`;
+  g+=`<path d="M520,200 L626,268" stroke="#4d5b69" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M520,200 L626,268" stroke="#7fc4e8" stroke-width="4" fill="none"/>`;
+  g+=`<text x="538" y="236" font-size="10.5" fill="#33414f" text-anchor="end">penstock ยาว ${sx(+w.w2L)} ม. Ø ${sx(+w.w2D,2)} ม. →</text>`;
+  g+=`<circle cx="608" cy="257" r="5" fill="#e0a400" stroke="#6b4600"/><text x="592" y="248" font-size="10" text-anchor="end" fill="#6b4600">MIV</text>`;
+  g+=`<rect x="618" y="244" width="78" height="54" fill="#e9eef3" stroke="#5d6b78" rx="4"/><circle cx="642" cy="276" r="13" fill="#fff" stroke="#0f2a4a" stroke-width="2"/><path d="M642,263 v26 M629,276 h26" stroke="#0f2a4a"/>`;
+  g+=`<rect x="660" y="262" width="28" height="28" fill="#cfd8e3" stroke="#5d6b78"/><text x="674" y="280" font-size="9" text-anchor="middle">GEN</text>`;
+  g+=`<text x="657" y="240" font-size="11" text-anchor="middle" fill="#0f2a4a" font-weight="600">โรงไฟฟ้า ${n} เครื่อง</text>`;
+  g+=`<rect x="696" y="${yT}" width="70" height="22" fill="#7fc4e8" opacity=".8"/><text x="731" y="${yT+38}" font-size="10.5" text-anchor="middle" fill="#0b3d66">ท้ายน้ำ ${sx(tw,2)}</text>`;
+  g+=`<line x1="20" y1="${yL}" x2="760" y2="${yL}" stroke="#1a6fd6" stroke-width="1" stroke-dasharray="2 3"/>`;
+  g+=`<path d="M232,${yL} L520,${yL+hlpx*0.55} L640,${yE}" stroke="#d1495b" stroke-width="2" fill="none" stroke-dasharray="6 3"/><text x="440" y="${yL+hlpx*0.42-6}" font-size="10.5" fill="#a3172f">เส้นพลังงาน (ลดลงตาม head loss)</text>`;
+  g+=`<line x1="640" y1="${yE}" x2="760" y2="${yE}" stroke="#d1495b" stroke-dasharray="2 3"/><line x1="696" y1="${yT}" x2="770" y2="${yT}" stroke="#1a6fd6" stroke-dasharray="2 3"/>`;
+  g+=`<line x1="752" y1="${yL}" x2="752" y2="${yT}" stroke="#0f2a4a" marker-start="url(#arP)" marker-end="url(#arP)"/><text x="745" y="${(yL+yT)/2-30}" font-size="11.5" text-anchor="end" font-weight="700" fill="#0f2a4a">H รวม ${sx(Hg,1)} ม.</text>`;
+  g+=`<line x1="712" y1="${yL}" x2="712" y2="${yE}" stroke="#a3172f" marker-start="url(#arP)" marker-end="url(#arP)"/><text x="708" y="${yL+hlpx/2+4}" font-size="11" text-anchor="end" fill="#a3172f">h_L ${sx(hl,1)} ม.</text>`;
+  g+=`<line x1="726" y1="${yE}" x2="726" y2="${yT}" stroke="#176b3c" marker-start="url(#arP)" marker-end="url(#arP)"/><text x="722" y="${(yE+yT)/2+18}" font-size="11.5" text-anchor="end" font-weight="700" fill="#176b3c">H สุทธิ ${sx(Hn,1)} ม.</text>`;
+  g+=`<rect x="300" y="18" width="300" height="74" rx="8" fill="#fff" stroke="#cfd8e3"/>`;
+  g+=`<text x="312" y="38" font-size="12" font-weight="700" fill="#0f2a4a">ที่ Q ออกแบบ ${sx(Qd,2)} ลบ.ม./วินาที (${n} เครื่อง)</text>`;
+  g+=`<text x="312" y="56" font-size="11.5" fill="#33414f">P = ρ·g·Q·H สุทธิ·η = ${sx(p.P)} kW</text>`;
+  g+=`<text x="312" y="73" font-size="11.5" fill="#33414f">SE = ${sx(SE,3)} kWh/ลบ.ม. · h_L/H = ${sx(hl/Math.max(Hg,1)*100,1)}%</text>`;
+  g+=`<text x="312" y="88" font-size="10" fill="#5b6b7b">${w.mode==='measured'?'h_L ปรับตามค่าวัดจริง':'h_L ตามแบบ (Darcy)'} · ท้ายน้ำ${s.twMode==='table'?'ตามตาราง':'คงที่'}</text>`;
+  return svgWrap(780,330,g,'แผนผังทางน้ำตามยาว '+s.short)}
+
+/* ---------- 2) มาตรวัดระดับอ่าง: โซนสถานะ ---------- */
+function spreadY(items,minGap,top,bot){items.sort((a,b)=>a.y-b.y);for(let i=1;i<items.length;i++){if(items[i].y-items[i-1].y<minGap)items[i].y=items[i-1].y+minGap}
+  const over=items.length?items[items.length-1].y-bot:0;if(over>0){items.forEach(t=>t.y-=over);for(let i=items.length-2;i>=0;i--){if(items[i+1].y-items[i].y<minGap)items[i].y=items[i+1].y-minGap}}if(items.length&&items[0].y<top){const d=top-items[0].y;items.forEach(t=>t.y+=d)}return items}
+function svgGauge(k){const s=S.sites[k],sim=simOf(k);const lvl=sim?sim.st.h:+s.level;const r=ruleAt(s,todayISO());const fsl=+s.fsl,mol=+s.mol,wm=+s.warnM;
+  let mx=lvl,mn=lvl;if(sim)sim.days.slice(0,7).forEach(d=>{mx=Math.max(mx,d.hMax||d.h);mn=Math.min(mn,d.h)});
+  const full=fsl-mol;let lo=Math.min(r.lo,mn,lvl);const zoom=lo-mol>full*0.35;lo=zoom?lo-Math.max(0.3,(fsl-lo)*0.15):mol-Math.max(0.6,full*0.08);
+  const hi=Math.max(fsl,mx,lvl)+Math.max(0.25,(fsl-lo)*0.07);
+  const y=h=>24+(hi-h)/(hi-lo)*250;const X=130,Wd=56;let g='';
+  const Z=[[-1e9,mol,'#c9ccd1','ต่ำกว่า MOL'],[mol,r.lo,'#e8c9a0','น้ำน้อย'],[r.lo,r.up,'#bfe6cd','ปกติ'],[r.up,fsl-wm,'#ffe9a8','เฝ้าระวัง'],[fsl-wm,fsl,'#ffc78a','เตือนล้น'],[fsl,1e9,'#f6b3bd','ล้นฝาย']];
+  Z.forEach(z=>{const a=Math.max(z[0],lo),b=Math.min(z[1],hi);if(b-a<=0.001)return;g+=`<rect x="${X}" y="${y(b)}" width="${Wd}" height="${y(a)-y(b)}" fill="${z[2]}"/>`;
+    if(y(a)-y(b)>14)g+=`<text x="${X+Wd/2}" y="${(y(a)+y(b))/2+4}" font-size="10" text-anchor="middle" fill="#2b3d52">${z[3]}</text>`});
+  g+=`<rect x="${X}" y="24" width="${Wd}" height="250" fill="none" stroke="#5d6b78"/>`;
+  if(zoom)g+=`<text x="${X+Wd/2}" y="288" font-size="9.5" text-anchor="middle" fill="#5b6b7b">ขยายช่วงบน · MOL ${sx(mol,2)} อยู่ต่ำกว่านี้</text>`;
+  const RT=[[fsl,'FSL'],[r.up,'เส้นบน'],[r.lo,'เส้นล่าง'],[mol,'MOL']].filter(t=>t[0]>=lo&&t[0]<=hi).map(t=>({h:t[0],y:y(t[0])+4,t:t[1]}));
+  spreadY(RT,12,30,276).forEach(t=>{g+=`<line x1="${X+Wd}" y1="${y(t.h)}" x2="${X+Wd+8}" y2="${t.y-4}" stroke="#8796a5"/><text x="${X+Wd+11}" y="${t.y}" font-size="10" fill="#33414f">${t.t} ${sx(t.h,2)}</text>`});
+  const LT=[{h:lvl,y:y(lvl)+4,t:'วันนี้ '+sx(lvl,2),c:'#0b3d66',b:1}];if(sim&&mx>lvl+0.005)LT.push({h:mx,y:y(mx)+4,t:'สูงสุด 7 วัน '+sx(mx,2),c:'#a3172f'});if(sim&&mn<lvl-0.005)LT.push({h:mn,y:y(mn)+4,t:'ต่ำสุด 7 วัน '+sx(mn,2),c:'#7a3f06'});
+  spreadY(LT,13,30,276).forEach(t=>{g+=`<line x1="${X-12}" y1="${t.y-4}" x2="${X}" y2="${y(t.h)}" stroke="${t.c}"/><text x="${X-14}" y="${t.y}" font-size="${t.b?11.5:10.5}" font-weight="${t.b?700:400}" text-anchor="end" fill="${t.c}">${t.t}</text>`});
+  if(sim&&mx>lvl+0.005)g+=`<line x1="${X}" y1="${y(mx)}" x2="${X+Wd}" y2="${y(mx)}" stroke="#d1233a" stroke-width="2" stroke-dasharray="4 2"/>`;
+  g+=`<line x1="${X-4}" y1="${y(lvl)}" x2="${X+Wd+4}" y2="${y(lvl)}" stroke="#0b3d66" stroke-width="3"/>`;
+  const pf=pctFull(s,lvl);g+=`<text x="${X+Wd/2}" y="306" font-size="11.5" text-anchor="middle" font-weight="700" fill="#0f2a4a">${esc(s.short)} · ${sx(pf.tot,1)}% ความจุ</text><text x="${X+Wd/2}" y="321" font-size="10.5" text-anchor="middle" fill="#5b6b7b">${sx(pf.V,3)} ล้าน ลบ.ม.</text>`;
+  return svgWrap(290,328,g,'มาตรวัดระดับอ่าง '+s.short)}
+
+/* ---------- 3) สมดุลน้ำวันนี้ (ตามแผน) ---------- */
+function fatH(x1,x2,y,w,col){const hw=Math.max(w+8,12),hl=Math.min(16,hw*0.7);return `<rect x="${x1}" y="${y-w/2}" width="${Math.max(0,x2-x1-hl)}" height="${w}" fill="${col}" opacity=".85"/><polygon points="${x2-hl},${y-hw/2} ${x2},${y} ${x2-hl},${y+hw/2}" fill="${col}"/>`}
+function svgBalance(k){const s=S.sites[k],sim=simOf(k);if(!sim||!sim.days.length)return '';const d=sim.days[0];
+  const I=d.I||0,E=d.E||0,T=d.Vt||0,O=d.Vo||0,SP=d.sp||0,W=d.wd||0;const dV=(d.V-d.V0);const mx=Math.max(I,E,T,O,SP,W,1);
+  const th=v=>v>0?clamp(Math.sqrt(v/mx)*24,3,24):0;let g=`<rect x="0" y="0" width="660" height="250" fill="#f7fbff" rx="10"/>`;
+  g+=fatH(20,205,125,th(I),'#2a7fb8')+`<text x="20" y="${125-th(I)/2-10}" font-size="11.5" fill="#0b3d66" font-weight="700">น้ำไหลเข้า ${sx(I)} ลบ.ม.</text><text x="20" y="${125+th(I)/2+18}" font-size="10.5" fill="#5b6b7b">ฝน ${sx(d.rain,1)} มม. → น้ำท่า${k==='bp'?' + จากทุ่งเพล':''}</text>`;
+  g+=`<rect x="210" y="70" width="170" height="110" rx="10" fill="#cfe9f7" stroke="#2a7fb8"/><text x="295" y="98" font-size="13" text-anchor="middle" font-weight="700" fill="#0b3d66">${esc(s.short)}</text>`;
+  g+=`<text x="295" y="120" font-size="11.5" text-anchor="middle" fill="#0b3d66">${sx(d.h0!=null?d.h0:sim.st.h,2)} → ${sx(d.h,2)} ม.รทก.</text><text x="295" y="140" font-size="11.5" text-anchor="middle" font-weight="600" fill="${dV>=0?'#176b3c':'#a3172f'}">ΔV ${dV>=0?'+':''}${sx(dV)} ลบ.ม.</text><text x="295" y="160" font-size="10" text-anchor="middle" fill="#33414f">(แผนวันนี้ แท็บ 4)</text>`;
+  const outs=[[T,'ผ่านกังหัน → '+sx(d.kWh)+' kWh','#1e9e5a'],[O,'ระบายทาง outlet','#e08a00'],[SP,'ล้นสันฝาย','#d1233a'],[W,'ส่งชลประทาน/ประปา','#7a4ab8']].filter(o=>o[0]>0);
+  const ys=outs.length===1?[125]:outs.map((o,i)=>82+i*(86/Math.max(1,outs.length-1)));
+  outs.forEach((o,i)=>{const yy=ys[i];g+=`<path d="M380,${125} L404,${125} L404,${yy} L410,${yy}" stroke="${o[2]}" stroke-width="${Math.min(th(o[0]),10)}" fill="none" opacity=".5"/>`+fatH(410,500,yy,th(o[0]),o[2])+`<text x="508" y="${yy-3}" font-size="11" fill="#2b3d52">${o[1]}</text><text x="508" y="${yy+12}" font-size="11" font-weight="600" fill="#2b3d52">${sx(o[0])} ลบ.ม.</text>`});
+  if(!outs.length)g+=`<text x="410" y="128" font-size="11.5" fill="#5b6b7b">ไม่มีการปล่อยน้ำ (เก็บกัก)</text>`;
+  if(E>0)g+=`<rect x="${295-th(E)/2}" y="40" width="${th(E)}" height="30" fill="#9aa7b4"/><polygon points="${295-th(E)/2-6},40 295,24 ${295+th(E)/2+6},40" fill="#9aa7b4"/><text x="${305+th(E)/2}" y="40" font-size="10.5" fill="#5b6b7b">ระเหย ${sx(E)} ลบ.ม.</text>`;
+  g+=`<text x="20" y="238" font-size="10.5" fill="#5b6b7b">ความหนาลูกศร ∝ ปริมาณน้ำ · ΔV = น้ำเข้า − (กังหัน + outlet + ล้นฝาย + ส่งน้ำ + ระเหย)</text>`;
+  return svgWrap(660,250,g,'สมดุลน้ำวันนี้ '+s.short)}
+
+/* ---------- 4) แนวคิดฝน → น้ำท่า ---------- */
+function svgRR(k){const s=S.sites[k];const r=rainSeries(k,1,'det')[0]||{p:0};const R=(+s.C)*r.p/1000*(+s.area)*1e6;let g=arrowDefs('arR','#2a7fb8');
+  g+=`<rect x="0" y="0" width="760" height="170" fill="#f7fbff" rx="10"/>`;
+  g+=`<path d="M40,46 a18,18 0 0,1 30,-14 a22,22 0 0,1 40,6 a16,16 0 0,1 4,30 h-70 a16,16 0 0,1 -4,-22z" fill="#cfd8e3" stroke="#8796a5"/>`;
+  for(let i=0;i<6;i++)g+=`<line x1="${52+i*11}" y1="76" x2="${47+i*11}" y2="90" stroke="#2a7fb8" stroke-width="2"/>`;
+  g+=`<text x="80" y="112" font-size="11.5" text-anchor="middle" font-weight="600">ฝนวันนี้ P</text><text x="80" y="128" font-size="11" text-anchor="middle">${sx(r.p,1)} มม.</text>`;
+  g+=`<path d="M150,70 L190,70" stroke="#2a7fb8" stroke-width="3" marker-end="url(#arR)"/>`;
+  g+=`<path d="M200,110 L240,40 L280,85 L320,30 L360,110 z" fill="#a8d5a2" stroke="#4f8a4a"/><text x="280" y="128" font-size="11.5" text-anchor="middle" font-weight="600">พื้นที่รับน้ำ A</text><text x="280" y="144" font-size="11" text-anchor="middle">${sx(+s.area,1)} ตร.กม. · C ${sx(+s.C,2)}</text>`;
+  g+=`<path d="M370,70 L410,70" stroke="#2a7fb8" stroke-width="3" marker-end="url(#arR)"/>`;
+  g+=`<rect x="420" y="40" width="120" height="60" rx="8" fill="#fff" stroke="#2a7fb8"/><path d="M430,85 h100" stroke="#7fc4e8" stroke-width="18"/><text x="480" y="60" font-size="11" text-anchor="middle" font-weight="600">หน่วงน้ำ k ${sx(+s.kRec,1)} วัน</text><text x="480" y="128" font-size="11" text-anchor="middle">น้ำท่า R = C·P·A</text><text x="480" y="144" font-size="11" text-anchor="middle">≈ ${sx(R)} ลบ.ม.</text>`;
+  g+=`<path d="M550,70 L590,70" stroke="#2a7fb8" stroke-width="3" marker-end="url(#arR)"/>`;
+  g+=`<rect x="600" y="50" width="140" height="56" fill="#7fc4e8" opacity=".7" stroke="#2a7fb8"/><text x="670" y="76" font-size="12" text-anchor="middle" font-weight="700" fill="#0b3d66">อ่าง${esc(s.short)}</text><text x="670" y="94" font-size="10.5" text-anchor="middle">+ น้ำท่าฐาน ${sx(+s.base,2)} ลบ.ม./วินาที</text>`;
+  g+=`<text x="20" y="162" font-size="10.5" fill="#5b6b7b">วิธี ${s.cmode==='scs'?'SCS-CN (CN '+sx(+s.CN)+')':'สัมประสิทธิ์ C'} · ตัวคูณสอบเทียบ ${sx(+s.calib,2)} · ฝนตกวันนี้จะไหลเข้าอ่างกระจายไปหลายวันตามค่า k</text>`;
+  return svgWrap(760,170,g,'แผนผังฝน-น้ำท่า')}
+
+/* ---------- 5) ระบบสถานีสูบ EP ---------- */
+function svgEP(){const e=S.ep,bp=S.sites.bp,sim=simOf('bp');const lvl=sim?sim.st.h:+bp.level;const t=todayISO();
+  const dayIn=(st,c)=>{if(!st)return '–';const dd=Math.round((dOf(t)-dOf(st))/864e5);return ((dd%c)+c)%c+1};
+  let g=arrowDefs('arE','#5b6b7b');g+=`<rect x="0" y="0" width="760" height="250" fill="#f7fbff" rx="10"/>`;
+  g+=`<rect x="20" y="60" width="150" height="110" fill="#7fc4e8" opacity=".7" stroke="#2a7fb8" rx="6"/><text x="95" y="96" font-size="12.5" text-anchor="middle" font-weight="700" fill="#0b3d66">อ่างบ้านพลวง</text><text x="95" y="116" font-size="11" text-anchor="middle">${sx(lvl,2)} ม.รทก.</text><text x="95" y="134" font-size="10.5" text-anchor="middle">${sx(pctFull(bp,lvl).tot,1)}% ความจุ</text>`;
+  g+=`<path d="M170,115 L230,115" stroke="#2a7fb8" stroke-width="6" marker-end="url(#arE)"/>`;
+  g+=`<rect x="240" y="40" width="230" height="168" rx="8" fill="#fff" stroke="#5d6b78"/><text x="355" y="60" font-size="12" text-anchor="middle" font-weight="700" fill="#0f2a4a">สถานีสูบฝั่งตะวันออก (EP)</text>`;
+  e.pumps.forEach((p,i)=>{const big=+p.kw>=500;const x=254+(i%4)*52,y=76+Math.floor(i/4)*56;g+=`<circle cx="${x+18}" cy="${y+18}" r="${big?17:13}" fill="${p.on!==false?'#bfe6cd':'#e5e7ea'}" stroke="${p.on!==false?'#1e9e5a':'#9aa7b4'}" stroke-width="2"/><text x="${x+18}" y="${y+22}" font-size="10" text-anchor="middle" font-weight="600">${esc(p.name)}</text><text x="${x+18}" y="${y+48}" font-size="9.5" text-anchor="middle" fill="#5b6b7b">${sx(+p.kw)} kW</text>`});
+  g+=`<text x="355" y="202" font-size="10" text-anchor="middle" fill="#5b6b7b">เขียว = พร้อมใช้ · เดินพร้อมกันไม่เกิน ${sx(+e.maxRun)} เครื่อง</text>`;
+  g+=`<path d="M470,90 L600,70" stroke="#5b6b7b" stroke-width="5" marker-end="url(#arE)"/><path d="M470,140 L600,165" stroke="#5b6b7b" stroke-width="4" marker-end="url(#arE)"/>`;
+  g+=`<text x="610" y="62" font-size="11.5" font-weight="700" fill="#0f2a4a">ท่อฝั่งตะวันออก</text><text x="610" y="78" font-size="10.5">${sx(+e.areaE)} ไร่ · รอบเวร ${sx(+e.cycleE)} วัน</text><text x="610" y="94" font-size="10.5" fill="#176b3c">วันนี้ = วันที่ ${dayIn(e.cycleStartE,+e.cycleE)} ของรอบ</text>`;
+  g+=`<text x="610" y="160" font-size="11.5" font-weight="700" fill="#0f2a4a">ฝั่งตะวันตก</text><text x="610" y="176" font-size="10.5">${sx(+e.areaW)} ไร่ · รอบเวร ${sx(+e.cycleW)} วัน</text><text x="610" y="192" font-size="10.5" fill="#176b3c">วันนี้ = วันที่ ${dayIn(e.cycleStartW,+e.cycleW)} ของรอบ</text>`;
+  g+=`<text x="20" y="238" font-size="10.5" fill="#5b6b7b">ค่าไฟ: อัตรา 7.1 = ราคาเดียวทุกช่วง · 7.2 TOU คุ้มเมื่อย้ายการสูบไปกลางคืน 22:00–09:00 / เสาร์–อาทิตย์ (หัวจ่ายรับน้ำ 24 ชม./รอบอยู่แล้ว)</text>`;
+  return svgWrap(760,250,g,'แผนผังสถานีสูบ EP')}
+
+/* ---------- 6) แถบ 24 ชม. TOU + แผนเดินเครื่องวันนี้ ---------- */
+function svgTOU(k){const sim=simOf(k);const d=sim&&sim.days[0];const rows=d&&(d.dp&&d.dp.rows||d.rows);if(!rows||!rows.length)return '';
+  const mx=Math.max(1,...rows.map(r=>r.P||0));let g=`<rect x="0" y="0" width="760" height="190" fill="#f7fbff" rx="10"/>`;const X=40,Wc=28;
+  rows.forEach((r,i)=>{const x=X+i*Wc;const pk=r.pk;g+=`<rect x="${x}" y="20" width="${Wc}" height="130" fill="${pk?'#fde7ea':'#e4effd'}"/>`;
+    const hgt=(r.P||0)/mx*120;g+=`<rect x="${x+4}" y="${150-hgt}" width="${Wc-8}" height="${hgt}" fill="${pk?'#d1495b':'#1a6fd6'}" rx="2"/>`;
+    if(r.n)g+=`<text x="${x+Wc/2}" y="${146-hgt}" font-size="9" text-anchor="middle" fill="#2b3d52">${r.n}</text>`;
+    g+=`<text x="${x+Wc/2}" y="164" font-size="9.5" text-anchor="middle" fill="#5b6b7b">${String(r.h).padStart(2,'0')}</text>`});
+  g+=`<text x="${X}" y="182" font-size="10.5" fill="#33414f">แท่ง = กำลังผลิตรายชั่วโมงตามแผนวันนี้ (สูงสุด ${sx(mx/1000,2)} MW) · ตัวเลขบนแท่ง = จำนวนเครื่อง · พื้นแดง = Peak · พื้นฟ้า = Off-peak</text>`;
+  g+=`<text x="${X}" y="14" font-size="11" font-weight="700" fill="#0f2a4a">${esc(S.sites[k].short)} — ${thDate(d.d,true)} · ${sx(d.kWh)} kWh</text>`;
+  return svgWrap(760,190,g,'แผนเดินเครื่องรายชั่วโมงตาม TOU')}
+
+/* ---------- 7) จุดวัดบนชุดกังหัน-เครื่องกำเนิด (Francis แกนนอน) ---------- */
+function svgUnitPoints(){let g=arrowDefs('arU','#a3172f');g+=`<rect x="0" y="0" width="760" height="260" fill="#f7fbff" rx="10"/>`;
+  g+=`<path d="M20,130 L120,130" stroke="#4d5b69" stroke-width="22"/><path d="M20,130 L120,130" stroke="#7fc4e8" stroke-width="14"/><text x="40" y="104" font-size="11" fill="#33414f">penstock</text>`;
+  g+=`<rect x="120" y="112" width="40" height="36" fill="#e0a400" stroke="#6b4600" rx="4"/><text x="140" y="166" font-size="10.5" text-anchor="middle">MIV</text>`;
+  g+=`<circle cx="230" cy="130" r="58" fill="#dfe6ee" stroke="#4d5b69" stroke-width="3"/><circle cx="230" cy="130" r="32" fill="#fff" stroke="#0f2a4a" stroke-width="2"/>`;
+  for(let i=0;i<12;i++){const a=i*Math.PI/6;g+=`<line x1="${230+38*Math.cos(a)}" y1="${130+38*Math.sin(a)}" x2="${230+50*Math.cos(a+0.35)}" y2="${130+50*Math.sin(a+0.35)}" stroke="#5d6b78" stroke-width="3"/>`}
+  g+=`<text x="230" y="134" font-size="10" text-anchor="middle" font-weight="600">runner</text><text x="230" y="206" font-size="10.5" text-anchor="middle">spiral casing + guide vane</text>`;
+  g+=`<path d="M230,188 L230,240 L300,240" stroke="#4d5b69" stroke-width="14" fill="none"/><text x="320" y="244" font-size="10" fill="#33414f">draft tube → ท้ายน้ำ</text>`;
+  g+=`<rect x="300" y="122" width="300" height="16" fill="#8796a5"/><rect x="330" y="106" width="34" height="48" fill="#cfd8e3" stroke="#5d6b78"/><rect x="560" y="106" width="34" height="48" fill="#cfd8e3" stroke="#5d6b78"/>`;
+  g+=`<rect x="420" y="78" width="110" height="104" rx="8" fill="#b9c6d6" stroke="#4d5b69"/><text x="475" y="134" font-size="12" text-anchor="middle" font-weight="700">GENERATOR</text>`;
+  g+=`<rect x="160" y="40" width="44" height="22" fill="#fff" stroke="#5d6b78"/><text x="182" y="55" font-size="9.5" text-anchor="middle">servo</text><line x1="190" y1="62" x2="206" y2="84" stroke="#5d6b78" stroke-width="2"/>`;
+  const P=[[108,112,'① ความดันก่อน MIV (pen)',60,20],[175,112,'② ความดันหลัง MIV (cas)',60,36],[182,40,'③ servo stroke มม. / %GV',250,22],[347,106,'④ อุณหภูมิ bearing (brg)',300,66],[347,154,'⑤ ความสั่นสะเทือน (vib)',340,200],[475,182,'⑥ อุณหภูมิขดลวด (wdg)',520,222],[530,92,'⑦ kW kV A PF Hz Mvar',620,56],[600,130,'⑧ rpm',660,110]];
+  P.forEach(p=>{g+=`<circle cx="${p[0]}" cy="${p[1]}" r="5" fill="#d1233a"/><line x1="${p[0]}" y1="${p[1]}" x2="${p[3]}" y2="${p[4]}" stroke="#a3172f" stroke-dasharray="3 2"/><text x="${p[3]}" y="${p[4]-3}" font-size="10.5" fill="#a3172f" font-weight="600">${p[2]}</text>`});
+  return svgWrap(760,260,g,'ตำแหน่งจุดวัดบนชุดกังหัน')}
+
+/* ---------- 8) แถบเกณฑ์ควบคุม + ค่าล่าสุด ---------- */
+function svgLimBar(r,v){const lo2=nz(r.lo2),lo1=nz(r.lo1),hi1=nz(r.hi1),hi2=nz(r.hi2);if([lo2,lo1,hi1,hi2].every(x=>x==null))return '';const pts=[lo2,lo1,hi1,hi2,v].filter(x=>x!=null&&isFinite(x));if(!pts.length)return '';
+  let a=Math.min(...pts),b=Math.max(...pts);const pad=(b-a||Math.abs(a)||1)*0.18;a-=pad;b+=pad;const W=300,x=t=>6+(t-a)/(b-a)*(W-12);
+  let g=`<rect x="6" y="8" width="${W-12}" height="12" fill="#bfe6cd" rx="3"/>`;
+  if(lo1!=null)g+=`<rect x="6" y="8" width="${x(lo1)-6}" height="12" fill="#ffe9a8"/>`;if(lo2!=null)g+=`<rect x="6" y="8" width="${x(lo2)-6}" height="12" fill="#f6b3bd"/>`;
+  if(hi1!=null)g+=`<rect x="${x(hi1)}" y="8" width="${W-6-x(hi1)}" height="12" fill="#ffe9a8"/>`;if(hi2!=null)g+=`<rect x="${x(hi2)}" y="8" width="${W-6-x(hi2)}" height="12" fill="#f6b3bd"/>`;
+  let lastX=-99,alt=0;[lo2,lo1,hi1,hi2].forEach(t=>{if(t==null)return;const xx=x(t);alt=(xx-lastX<34)?1-alt:0;lastX=xx;g+=`<line x1="${xx}" y1="20" x2="${xx}" y2="${alt?34:24}" stroke="#9aa7b4"/><text x="${xx}" y="${alt?43:32}" font-size="8.5" text-anchor="middle" fill="#5b6b7b">${fmtV(t,r)}</text>`});
+  if(v!=null&&isFinite(v)){const xv=clamp(x(v),6,W-6);g+=`<polygon points="${xv-5},2 ${xv+5},2 ${xv},10" fill="#0f2a4a"/><line x1="${xv}" y1="8" x2="${xv}" y2="20" stroke="#0f2a4a" stroke-width="2"/>`}
+  return `<svg viewBox="0 0 ${W} 46" width="${W}" height="46" style="max-width:100%;${SVGF}">${g}</svg>`}
+
+/* ---------- 9) ขั้นตอนงานประจำวัน + การไหลของข้อมูล (คลิกไปแท็บได้) ---------- */
+function svgWorkflow(){const st=[['07:00','อ่านค่าหน้างาน','ฝน · ระดับ · มิเตอร์','log'],['07:15','บันทึกเช้า','แท็บ 8','log'],['07:30','สรุปเช้า','สถานะ/คำแนะนำ','brief'],['07:45','ตรวจน้ำล่วงหน้า','แท็บ 2–4','wb'],['08:00','สั่งเดินเครื่อง','ตาราง TOU แท็บ 5','gen'],['ทุกชั่วโมง','บันทึกรายเครื่อง','เทียบเกณฑ์ 8+','ctl'],['16:00','ตรวจครบ/เกินเกณฑ์','① แท็บ 8+','ctl'],['เลิกงาน','💾 สำรองไฟล์','JSON','help']];
+  let g=arrowDefs('arW','#12a4a4');g+=`<rect x="0" y="0" width="780" height="150" fill="#f7fbff" rx="10"/>`;
+  st.forEach((s,i)=>{const x=10+i*96;g+=`<g style="cursor:pointer" onclick="goTab('${s[3]}')"><rect x="${x}" y="34" width="86" height="84" rx="10" fill="#fff" stroke="#12a4a4" stroke-width="1.5"/><text x="${x+43}" y="26" font-size="10.5" text-anchor="middle" fill="#0b6f8a" font-weight="700">${s[0]}</text><text x="${x+43}" y="62" font-size="11" text-anchor="middle" font-weight="700" fill="#0f2a4a">${s[1]}</text><text x="${x+43}" y="84" font-size="9.5" text-anchor="middle" fill="#5b6b7b">${s[2]}</text><text x="${x+43}" y="106" font-size="9" text-anchor="middle" fill="#12a4a4">เปิด →</text></g>`;
+    if(i<st.length-1)g+=`<line x1="${x+86}" y1="76" x2="${x+95}" y2="76" stroke="#12a4a4" stroke-width="2" marker-end="url(#arW)"/>`});
+  g+=`<text x="10" y="142" font-size="10.5" fill="#5b6b7b">คลิกกล่องเพื่อเปิดแท็บที่เกี่ยวข้อง</text>`;return svgWrap(780,150,g,'ขั้นตอนงานประจำวัน')}
+function svgDataFlow(){const B={wx:[20,20,'2 พยากรณ์ฝน'],rr:[200,20,'3 ฝน–น้ำท่า'],wb:[380,20,'4 สมดุลน้ำ & Rule'],gen:[560,20,'5 ผลิตไฟ & TOU'],log:[20,120,'8 บันทึกประจำวัน'],ctl:[200,120,'8+ เกณฑ์ควบคุม'],brief:[380,120,'1 สรุปเช้า'],kpi:[560,120,'10 KPI'],ord:[380,215,'9 ทะเบียนคำสั่ง'],irr:[560,215,'6 ชลประทาน EP'],setup:[20,215,'⚙ ค่าตั้งต้น'],house:[200,215,'7 ไฟใช้ภายใน']};
+  const L=[['wx','rr'],['rr','wb'],['wb','gen'],['log','ctl'],['ctl','brief'],['log','brief'],['wb','brief'],['log','kpi'],['ord','wb'],['irr','wb'],['setup','rr'],['gen','house']];
+  let g=arrowDefs('arD','#5b6b7b');g+=`<rect x="0" y="0" width="760" height="275" fill="#f7fbff" rx="10"/>`;
+  L.forEach(l=>{const a=B[l[0]],b=B[l[1]];const ax=a[0]+80,ay=a[1]+22,bx=b[0]+80,by=b[1]+22;let x1=ax,y1=ay,x2=bx,y2=by;if(a[1]===b[1]){x1=a[0]+160;x2=b[0];}else if(a[0]===b[0]){y1=a[1]+(b[1]>a[1]?44:0);y2=b[1]+(b[1]>a[1]?0:44)}else{y1=a[1]+(b[1]>a[1]?44:0);y2=b[1]+(b[1]>a[1]?0:44)}
+    g+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#8796a5" stroke-width="1.6" marker-end="url(#arD)"/>`});
+  Object.entries(B).forEach(([k,b])=>{g+=`<g style="cursor:pointer" onclick="goTab('${k}')"><rect x="${b[0]}" y="${b[1]}" width="160" height="44" rx="9" fill="${k==='brief'?'#0f2a4a':'#fff'}" stroke="#12a4a4" stroke-width="1.5"/><text x="${b[0]+80}" y="${b[1]+27}" font-size="12" text-anchor="middle" font-weight="700" fill="${k==='brief'?'#fff':'#0f2a4a'}">${b[2]}</text></g>`});
+  return svgWrap(760,275,g,'การไหลของข้อมูลระหว่างแท็บ')}
+
+/* ---------- ติดตั้งแผนผังเข้าแท็บต่าง ๆ ---------- */
+function figCard(title,body,note){return `<div class="card figcard"><h3>🖼 ${title}</h3>${body}${note?`<div class="small muted" style="margin-top:4px">${note}</div>`:''}</div>`}
+const _brief12=RENDER.brief;
+RENDER.brief=function(){let h=_brief12();try{const pk=proj();if(pk==='basin')return h;const keys=SITE_OF[pk];
+  const fig=figCard('แผนผังสถานะ ณ วันนี้',`<div class="figrow">${keys.map(k=>`<div class="figcol">${svgGauge(k)}</div>`).join('')}<div class="figcol wide">${keys.map(k=>svgBalance(k)).join('')}</div></div>`,'มาตรวัด: แถบสี = โซนสถานะตาม FSL / rule curve / MOL · เส้นประแดง = ระดับสูงสุดที่คาดใน 7 วัน · สมดุลน้ำ = แผนของวันนี้จากแท็บ 4');
+  const i=h.indexOf('<div class="card"><h3>งานประจำวัน');h=i>0?h.slice(0,i)+fig+h.slice(i):h+fig}catch(e){console.error(e)}return h};
+function wrapAppend(t,fn){const o=RENDER[t];RENDER[t]=function(){let h=o.apply(this,arguments);try{h+=fn()}catch(e){console.error(e)}return h}}
+wrapAppend('wb',()=>figCard('มาตรวัดระดับและสมดุลน้ำ',`<div class="figrow">${SITE_OF[proj()].map(k=>`<div class="figcol">${svgGauge(k)}</div>`).join('')}<div class="figcol wide">${SITE_OF[proj()].map(k=>svgBalance(k)).join('')}</div></div>`,'ระดับวันถัดไป = ระดับวันนี้ + (น้ำเข้า − น้ำออก) ÷ พื้นที่ผิว · เมื่อคาดว่าล้น เครื่องมือจะเพิ่มการปล่อยน้ำล่วงหน้า (กังหันก่อน แล้ว outlet)'));
+wrapAppend('rr',()=>figCard('ฝนกลายเป็นน้ำไหลเข้าอ่างอย่างไร',SITE_OF[proj()].map(k=>svgRR(k)).join(''),'ฝนตกหนักติดกันหลายวัน ดินอิ่มน้ำ → สัดส่วนน้ำท่าสูงขึ้น (SCS-CN ปรับ AMC ให้อัตโนมัติ)'));
+wrapAppend('gen',()=>{const k=SITE_OF[proj()].find(x=>S.sites[x].units.length);return k?figCard('ทางน้ำและ head ของโรงไฟฟ้า',svgProfile(k)+svgTOU(k),'ไม่ตามมาตราส่วน · ยิ่ง head loss มาก (ตะแกรงอุดตัน/ท่อขรุขระ) H สุทธิและ SE ยิ่งลด · จัดน้ำไปช่วง Peak ก่อนเมื่อราคาขายเป็น TOU'):''});
+wrapAppend('irr',()=>figCard('ผังระบบส่งน้ำจากอ่างบ้านพลวง',svgEP()));
+wrapAppend('setup',()=>{const k=(typeof setupSite!=='undefined'&&setupSite)||'kt';return S.sites[k].units.length?figCard('แผนผังทางน้ำจากค่าที่กรอก (ตรวจความสมเหตุสมผล)',svgProfile(k),'ถ้า h_L/H เกิน ~5% ควรตรวจตะแกรง/ท่อ หรือค่าที่กรอก'):figCard('มาตรวัดระดับอ่าง',svgGauge(k))});
+wrapAppend('log',()=>figCard('ตำแหน่งจุดวัดค่ารายชั่วโมงบนชุดกังหัน–เครื่องกำเนิด',svgUnitPoints(),'ใช้คู่กับแบบฟอร์มรายชั่วโมง — หมายเลขตรงกับคอลัมน์ในแท็บ 8 / แบบฟอร์มพิมพ์แท็บ 8+'));
+
+/* ---------- แท็บ 8+: แถบเกณฑ์ + กราฟแนวโน้มพร้อมเส้นเกณฑ์ ---------- */
+let ctlTrendP=null;
+const _ctlU12=UPDATE.ctl;
+UPDATE.ctl=function(){_ctlU12();if(ctlView!=='today')return;const k=ctlSite,d=ctlDate||todayISO();const host=$('ctlList');if(!host)return;
+  const C=checklist(k,d);let bars='<div class="figgrid">';C.forEach(c=>{const r=c.r;let v=null;if(c.log)v=c.v;else{const p=c.per.filter(x=>x.last!=null);if(p.length)v=p.map(x=>x.last).reduce((a,b)=>Math.max(a,b))}
+    const svg=svgLimBar(r,v);if(!svg)return;bars+=`<div class="limcell"><div class="small"><b>${esc(r.name)}</b> ${v!=null?`= <span class="mono">${fmtV(v,r)}</span> ${esc(r.unit)}`:'<span class="muted">ยังไม่บันทึก</span>'} ${c.st&&c.st!=='ok'?stTag(c.st):''}</div>${svg}</div>`});bars+='</div>';
+  const RR=limRows(k).filter(r=>r.src==='read'||r.src==='calc_read');if(!ctlTrendP||!RR.find(r=>r.id===ctlTrendP))ctlTrendP=(RR.find(r=>r.p==='brg')||RR[0]||{}).id;
+  let fig=$('ctlFig');if(!fig){host.insertAdjacentHTML('afterend','<div id="ctlFig"></div>');fig=$('ctlFig')}
+  fig.innerHTML=(`<div class="card" style="margin-top:12px"><h3>🖼 ภาพเกณฑ์ควบคุม (ค่าล่าสุดของวันที่เลือก)</h3><div class="small muted">แถบ: เขียว = ปกติ · เหลือง = เตือน · แดง = Alarm · ▼ = ค่าที่บันทึก (รายชั่วโมงแสดงค่าสูงสุดของทุกเครื่อง)</div>${bars}</div>
+   <div class="card"><h3>📈 แนวโน้ม 3 วันพร้อมเส้นเกณฑ์</h3><div class="row"><select class="inp" style="max-width:320px" onchange="ctlTrendP=this.value;ctlTrend()">${RR.map(r=>`<option value="${r.id}" ${r.id===ctlTrendP?'selected':''}>${esc(r.name)} (${esc(r.unit)})</option>`).join('')}</select></div><div class="chartbox"><canvas id="chCtl"></canvas></div><div id="chCtlNote" class="small muted"></div></div>`);
+  ctlTrend()};
+function ctlTrend(){const k=ctlSite;const r=limRows(k).find(x=>x.id===ctlTrendP);if(!r||!$('chCtl'))return;const d=ctlDate||todayISO(),from=addDays(d,-2);
+  const R=S.reads.filter(x=>x.site===k&&x.date>=from&&x.date<=d).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));const units=[...new Set(R.map(x=>x.unit))];
+  const lab=[...new Set(R.map(x=>x.date.slice(5)+' '+(x.time||'')))];const col=['#1a6fd6','#e08a00','#7a4ab8','#1e9e5a','#5b6b7b','#d1495b','#0b6f8a'];
+  const ds=units.map((u,i)=>({label:u,data:lab.map(l=>{const x=R.find(y=>y.unit===u&&(y.date.slice(5)+' '+(y.time||''))===l);const v=x?limVal(r,x,k):null;return v==null?null:v}),borderColor:col[i%col.length],backgroundColor:col[i%col.length],spanGaps:true,tension:.2,pointRadius:3}));
+  [['hi2','Alarm สูง','#d1233a'],['hi1','เตือนสูง','#e0a400'],['lo1','เตือนต่ำ','#e0a400'],['lo2','Alarm ต่ำ','#d1233a']].forEach(t=>{const v=nz(r[t[0]]);if(v!=null)ds.push({label:t[1]+' '+v,data:lab.map(()=>v),borderColor:t[2],borderDash:[6,4],pointRadius:0,borderWidth:1.5,fill:false})});
+  mkChart('chCtl',{type:'line',data:{labels:lab,datasets:ds},options:{scales:{y:{title:{display:true,text:r.unit}}}}});
+  $('chCtlNote').textContent=R.length?`${R.length} ค่าใน 3 วัน · ${limTxt(r)}`:'ยังไม่มีบันทึกรายชั่วโมงในช่วงนี้'}
+
+/* ---------- แท็บวิธีใช้: แทรกแผนผัง ---------- */
+const _help12=RENDER.help;
+RENDER.help=function(){let h=_help12();const fx=h.indexOf('<div class="fx">');if(fx>0){const end=h.indexOf('</div>',fx)+6;h=h.slice(0,fx)+svgDataFlow()+h.slice(end)}
+  const i=h.indexOf('<div class="card"><h3>2.');const add=`<div class="card"><h3>1.1 ขั้นตอนงานประจำวัน (แผนผัง)</h3>${svgWorkflow()}</div><div class="card"><h3>1.2 แผนผังระบบโรงไฟฟ้าและจุดวัด</h3>${svgProfile('kt')}${svgUnitPoints()}<div class="small muted">ตัวเลขในแผนผังคำนวณสดจากค่าตั้งต้นของโครงการ (ไม่ตามมาตราส่วน)</div></div>`;
+  h=i>0?h.slice(0,i)+add+h.slice(i):h+add;
+  h=h.replace('<div class="card"><h3>3. ข้อมูลไหลอย่างไร</h3>','<div class="card"><h3>3. ข้อมูลไหลอย่างไร (คลิกกล่องเพื่อเปิดแท็บ)</h3>');return h};
+
+/* ================= (2) โหมดจำลองสถานการณ์ (ข้อมูลสมมติ) ================= */
+const DEMO_SC={
+ flood:{t:'① ฤดูฝน — พายุเข้า น้ำมาก',icon:'🌧',d:'ฝนตกต่อเนื่อง 2 สัปดาห์ อ่างคีรีธารใกล้สันฝาย ทุ่งเพลน้ำล้นฝาย และพยากรณ์มีพายุ 45–130 มม./วัน ใน 3 วันข้างหน้า · ผู้ว่าฯ สั่งจำกัดการระบายคีรีธารไม่เกิน 9 ลบ.ม./วินาที เพื่อลดผลกระทบท้ายน้ำ',
+   look:[['brief','สัญญาณไฟ “เตือนน้ำล้น” + ระดับสูงสุดที่คาดใน 7 วัน'],['wx','ฝนพยากรณ์ 3 วันหนักมาก และช่วง P10–P90'],['wb','ปริมาณน้ำที่ต้องระบายล่วงหน้า + ผลของคำสั่งจำกัดการระบาย'],['gen','เดินเครื่องเต็มกำลังทั้ง 2 เครื่อง'],['ctl','Alarm ฝน ≥ 90 มม. และระดับน้ำ'],['ord','คำสั่งผู้ว่าฯ ที่บังคับในแผน']]},
+ drought:{t:'② หน้าแล้ง — น้ำน้อย',icon:'☀',d:'ฝนทิ้งช่วง 30 วัน อ่างคีรีธารลดลงต่ำกว่าเส้นควบคุมล่าง อ่างบ้านพลวงต่ำ ความต้องการน้ำไม้ผลสูง (สวนทุเรียนติดผล 70%) · คำสั่งให้รักษาระดับคีรีธารไม่ต่ำกว่า 200.0 ม.รทก.',
+   look:[['brief','สัญญาณไฟ “น้ำน้อย” และคำแนะนำประหยัดน้ำ'],['wb','แผนลดการปล่อยน้ำ / ระดับต่ำสุดที่คาด'],['gen','เดินเครื่องเฉพาะช่วง Peak ด้วยน้ำที่มีจำกัด'],['irr','ปริมาณสูบ EP สูง และผลเปรียบเทียบ 7.1 vs 7.2'],['kpi','พลังงาน/รายได้รายเดือนลดลง']]},
+ fault:{t:'③ เครื่องผิดปกติ — ค่าเกินเกณฑ์',icon:'⚠',d:'น้ำปกติ แต่ U-1 คีรีธาร อุณหภูมิ bearing และความสั่นสะเทือนเพิ่มขึ้นต่อเนื่อง 2 วัน · SE คีรีธารลดลง 12% ใน 12 วัน (ตะแกรงดักขยะอุดตัน) · ทุ่งเพลความดันก่อน MIV ลด → head loss เพิ่ม · ปั๊ม P-5 ขดลวดร้อน',
+   look:[['ctl','Alarm/เตือน + แถบเกณฑ์ + กราฟแนวโน้มพร้อมเส้นเกณฑ์'],['log','ช่องสีเหลือง/แดงในบันทึกรายชั่วโมง'],['brief','การ์ด “ค่าเกินเกณฑ์” บนสรุปเช้า'],['kpi','SE/ประสิทธิภาพลดลง + งานบำรุงรักษาใหม่']]}
+};
+function rnd(seed){let x=seed||1;return ()=>{x=(x*16807)%2147483647;return (x-1)/2147483646}}
+/* จำลองย้อนหลัง n วัน (บันทึกเช้า) แบบตามเป้าระดับ — ใช้สมการเดียวกับเครื่องมือ (ESA, น้ำท่า, ฝาย, P–Q) */
+function demoStorageHist(k,n,rain,tgt,o){const s=S.sites[k];o=o||{};const R=rnd(o.seed||7);const logs=[];let V=V_of_h(s,tgt(0))*MCM;
+  const ro=runoffSeries(s,rain,[0,0,0,0,0,0]);const U=s.units.filter(u=>u.on!==false);const qmax=U.length?maxPlantQ(s):0;const qmin1=U.length?(+U[0].qr)*(+s.qmin)/100:0;const out=[];
+  for(let i=0;i<n;i++){const iso=addDays(todayISO(),-(n-1-i));let I=ro[i].Q+((o.up&&o.up[i])||0);const h0=h_of_V(s,V/MCM);const E=(+s.evap)/1000*A_of_h(s,h0)*1e6;const W=(o.irr?o.irr(i):0);
+    const Vt=V_of_h(s,tgt(i+1))*MCM;let rel=(V-Vt+I-E-W)/86400;rel=clamp(rel,0,qmax);let vol=rel*86400;if(vol>0&&rel<qmin1){vol=Math.min(vol,qmin1*86400)}
+    let sp=0;for(let h=0;h<24;h++){const hh=h_of_V(s,V/MCM);const qs=spillQ(s,hh);V+=(I-E-W)/24-(vol/24)-qs*3600;sp+=qs*3600}V=Math.max(V,0);const h1=h_of_V(s,V/MCM);
+    let kwh=0,hrs=0;if(U.length&&vol>0){const res=(h0+h1)/2;const qr=+U[0].qr;const nU=vol/86400>qr*1.05?2:1;const Q=Math.min(qmax,Math.max(vol/86400,qmin1*nU));hrs=vol/(Q*3600);const tw5=tailwater(s,5);const f=o.seF?o.seF(i):1;kwh=vol*(+s.seRef)*(res-tw5)/Math.max(1,(+s.level)-tw5)*f*(1+(R()-0.5)*0.02)}
+    out.push(vol+sp);
+    logs.push({id:uid(),site:k,date:iso,time:'07:00',rain:+rain[i].toFixed(1),level:+h1.toFixed(2),tw:U.length?+tailwater(s,kwh/Math.max(hrs,1)/1000).toFixed(2):'',kwh:Math.round(kwh),turb:Math.round(vol),spill:Math.round(sp),irr:W?Math.round(W):'',inflow:'',buy:U.length&&hrs<23?Math.round(15*(24-hrs))*10:0,hrs:U.length?(hrs/24*24).toFixed(1):'',by:'สาธิต',note:''})}
+  return {logs,out}}
+function demoPondHist(n,rain,lvl,o){const s=S.sites.tp;o=o||{};const ro=runoffSeries(s,rain,[0,0,0,0,0,0]);const qmax=maxPlantQ(s);const logs=[],out=[];
+  for(let i=0;i<n;i++){const iso=addDays(todayISO(),-(n-1-i));const I=ro[i].Q;const vol=Math.min(I,qmax*86400*(o.cap||1));const sp=Math.max(0,I-vol);const lv=sp>0?(+s.fsl)+Math.pow(sp/86400/((+s.spillCw)*(+s.spillL)),2/3):lvl(i);
+    let kwh=0,hrs=0;if(vol>0){const nU=vol/86400>3.1?2:1;const Q=Math.max(vol/86400,0.9*nU);hrs=Math.min(24,vol/(Q*3600));kwh=vol*(+s.seRef)*(lv-64)/(261.2-68)*(o.seF?o.seF(i):1)}
+    out.push(vol+sp);logs.push({id:uid(),site:'tp',date:iso,time:'07:00',rain:+rain[i].toFixed(1),level:+lv.toFixed(2),tw:+(64+i*0.02).toFixed(2),kwh:Math.round(kwh),turb:Math.round(vol),spill:Math.round(sp),irr:'',inflow:'',buy:0,hrs:hrs.toFixed(1),by:'สาธิต',note:''})}
+  return {logs,out}}
+function demoFc(k,fut,past){const daily=fut.map((p,i)=>({d:addDays(todayISO(),i),p,pp:p>20?90:p>5?70:p>0?40:10,et0:p>20?2.6:p>5?3.2:4.4,tx:p>20?29:33,tn:24}));
+  const ens={};daily.forEach((x,i)=>{ens[x.d]={p10:+(x.p*Math.max(0.15,0.55-i*0.02)).toFixed(1),p50:+(x.p*0.92).toFixed(1),p90:+(x.p*(1.5+i*0.05)+2).toFixed(1),n:51}});
+  const hourly={t:[],p:[],pp:[]};const h0=new Date();h0.setMinutes(0,0,0);for(let i=0;i<96;i++){const dt=new Date(h0.getTime()+i*3600e3);const di=Math.floor((dt-new Date(todayISO()+'T00:00'))/864e5);const P=fut[di]||0;const w=[0,0,0,0,0,.02,.03,.04,.05,.05,.05,.06,.07,.08,.09,.1,.09,.07,.05,.04,.03,.02,0,0][dt.getHours()];hourly.t.push(dt.toISOString().slice(0,16));hourly.p.push(+(P*w).toFixed(1));hourly.pp.push(P>5?80:20)}
+  const s=S.sites[k];return {t:Date.now(),lat:+s.lat,lon:+s.lon,daily,past:past.map((p,i)=>({d:addDays(todayISO(),-(past.length-i)),p})),hourly,ens,ensErr:'',model:'ข้อมูลสาธิต (สมมติ) — ไม่ใช่พยากรณ์จริง'}}
+function demoReads(k,unit,days,fn){const s=S.sites[k];const out=[];for(let d=days-1;d>=0;d--){const iso=addDays(todayISO(),-d);for(let h=0;h<24;h+=2){const t=(days-1-d)*24+h;const x=fn(t,(days*24));if(!x)continue;out.push(Object.assign({id:uid(),site:k,date:iso,time:String(h).padStart(2,'0')+':00',unit},x))}}return out}
+function genRead(o){const kw=o.kw,pf=o.pf||0.95,kv=o.kv||6.62;return {kw:Math.round(kw),kv:+kv.toFixed(2),a:Math.round(kw/(Math.sqrt(3)*kv*pf)),pf,hz:o.hz||50.0,mvar:+(kw/1000*Math.tan(Math.acos(pf))).toFixed(2),gv:o.gv,servo:o.servo,pen:o.pen,cas:o.cas,rpm:o.rpm,brg:o.brg,wdg:o.wdg,vib:o.vib,oilP:o.oilP,cwP:o.cwP,res:o.res,tw:o.tw,note:o.note||''}}
+function buildDemo(sc){const n=30,R=rnd(sc==='flood'?11:sc==='drought'?23:37);
+  S.logs=[];S.reads=[];S.orders=[];S.issues=[];seedIssues();S.manual={kt:[],tp:[],bp:[]};S.fcSrc='auto';S.ordSeq=1;
+  const wave=(i,base,amp)=>Math.max(0,base+amp*(R()-0.35));let rKt,rTp,rBp,fut,tKt,tBp,lvTp,irr,ord=[],seKt=null,capTp=1;
+  if(sc==='flood'){rKt=[...Array(n)].map((_,i)=>i<14?wave(i,6,14):i<24?wave(i,14,30):[18,32,48,62,40,26][i-24]);fut=[45,85,130,70,30,12,6,3,2,0,0,4,8,5,2,0];
+    tKt=i=>204.15+0.72*Math.pow(i/n,1.6);tBp=i=>69.0+0.55*i/n;S.ep.actE=10;S.ep.actW=10;
+    ord.push({date:todayISO(),issuer:'ผู้ว่าราชการจังหวัดจันทบุรี',ref:'จบ 0017/ว สมมติ',site:'kt',text:'จำกัดการระบายน้ำเขื่อนคีรีธารไม่เกิน 9 ลบ.ม./วินาที ช่วงน้ำหลาก เพื่อลดผลกระทบท้ายน้ำ อ.มะขาม',type:'maxRel',val:9,start:todayISO(),end:addDays(todayISO(),5),status:'active'});
+    ord.push({date:addDays(todayISO(),-1),issuer:'ศูนย์ป้องกันภัยฯ (ปภ.)/อำเภอ',ref:'แจ้งเตือน (สมมติ)',site:'all',text:'เฝ้าระวังฝนตกหนักถึงหนักมาก 3 วัน แจ้งระดับน้ำทุก 6 ชม.',type:'note',val:'',start:addDays(todayISO(),-1),end:addDays(todayISO(),3),status:'active'})}
+  else if(sc==='drought'){rKt=[...Array(n)].map((_,i)=>i%9===4?wave(i,3,4):0);fut=[0,0,0,2,0,0,0,0,1,0,0,0,0,3,0,0];
+    tKt=i=>202.3-1.95*i/n;tBp=i=>57.6-2.4*i/n;S.ep.actE=70;S.ep.actW=60;S.ep.dayVolMode='auto';S.sites.kt.minRel=1.2;
+    ord.push({date:addDays(todayISO(),-5),issuer:'อธิบดี/รองอธิบดี พพ.',ref:'พน 0xxx (สมมติ)',site:'kt',text:'รักษาระดับน้ำคีรีธารไม่ต่ำกว่า +200.0 ม.รทก. สำรองน้ำอุปโภค-บริโภคท้ายน้ำ',type:'minLvl',val:200.0,start:addDays(todayISO(),-5),end:'',status:'active'});
+    ord.push({date:addDays(todayISO(),-3),issuer:'คณะกรรมการจัดสรรน้ำ/ชลประทาน',ref:'มติที่ประชุม (สมมติ)',site:'bp',text:'จัดสรรน้ำประปา กปภ. เป็นลำดับแรก ลดรอบเวรไม้ผลเป็น 12 วัน',type:'note',val:'',start:addDays(todayISO(),-3),end:'',status:'active'})}
+  else{rKt=[...Array(n)].map((_,i)=>wave(i,7,16));fut=[12,8,15,6,4,10,18,8,5,3,6,9,4,2,5,7];tKt=i=>204.70+0.05*Math.sin(i/5);tBp=i=>67.0+0.2*i/n;S.ep.actE=20;S.ep.actW=20;
+    seKt=i=>i<n-12?1:1-0.12*(i-(n-12))/12}
+  rTp=rKt.map(x=>x*0.9);rBp=rKt.map(x=>x*0.95);
+  const kt=demoStorageHist('kt',n,rKt,tKt,{seed:5,seF:seKt});lvTp=sc==='drought'?(i=>258.9+0.4*Math.sin(i)):sc==='fault'?(i=>260.55+0.1*Math.sin(i)):(i=>260.9);const tp=demoPondHist(n,rTp,lvTp,{seF:sc==='fault'?(i=>i<n-6?1:0.97):null});
+  irr=i=>{const e=S.ep;return ((+e.areaE)*(+e.actE)+(+e.areaW)*(+e.actW))/100*1600*(sc==='drought'?4.6:1.2)/1000/((+e.effIrr)/100)+(+S.sites.bp.pwa)*MCM/365};
+  const bp=demoStorageHist('bp',n,rBp,tBp,{seed:9,up:tp.out,irr});
+  S.logs=kt.logs.concat(tp.logs,bp.logs);
+  ['kt','tp','bp'].forEach(k=>{S.fc[k]=demoFc(k,k==='kt'?fut:fut.map(x=>+(x*0.9).toFixed(1)),(k==='kt'?rKt:k==='tp'?rTp:rBp).slice(-7))});
+  S.sites.kt.levelDate=addDays(todayISO(),-40);S.sites.tp.levelDate=addDays(todayISO(),-40);S.sites.bp.levelDate=addDays(todayISO(),-40);
+  const lk=kt.logs[n-1],ltp=tp.logs[n-1];
+  /* บันทึกรายชั่วโมง 2 วัน */
+  const ktU=(u,bad)=>demoReads('kt',u,2,(t,T)=>{const f=t/T;const kw=sc==='drought'?(t%24>=9&&t%24<21?4300:0):(sc==='flood'?6050:5150);if(!kw)return genRead({kw:0,kv:0,pf:1,hz:0,rpm:0,brg:38,wdg:35,vib:0.3,pen:13.1,res:lk.level,tw:69.4});
+    return genRead({kw:kw*(1+(R()-0.5)*0.02),kv:6.6+(R()-0.5)*0.12,pf:0.95,hz:50+(R()-0.5)*0.12,gv:sc==='flood'?86:74,servo:sc==='flood'?122:96,pen:+(13.25-(kw/6100)*0.25+(R()-0.5)*0.05).toFixed(2),cas:+(13.1-(kw/6100)*0.3).toFixed(2),rpm:Math.round(500+(R()-0.5)*3),
+      brg:+(bad?62+21*f+(R()-0.5):60+R()*3).toFixed(1),wdg:+(78+12*kw/6100+(R()-0.5)*2).toFixed(1),vib:+(bad?2.6+5.0*f*f+R()*0.2:1.8+R()*0.6).toFixed(2),oilP:+(40+R()).toFixed(1),cwP:+(2.4+R()*0.2).toFixed(2),res:lk.level,tw:70.3,note:bad&&f>0.7?'เสียงผิดปกติที่ bearing ด้านกังหัน (สมมติ)':''})});
+  const tpU=(u,bad)=>demoReads('tp',u,2,(t,T)=>{const f=t/T;const run=sc==='drought'?(t%24>=9&&t%24<22):true;if(!run)return genRead({kw:0,kv:0,pf:1,hz:0,rpm:0,brg:36,wdg:34,vib:0.2,pen:18.4,res:ltp.level,tw:64});
+    const pen=bad?17.4-1.5*f:17.4+(R()-0.5)*0.1;return genRead({kw:(bad?4480-380*f:4470)*(1+(R()-0.5)*0.015),pf:0.96,kv:6.6+(R()-0.5)*0.1,gv:80,pen:+pen.toFixed(2),cas:+(pen-0.4).toFixed(2),rpm:Math.round(1000+(R()-0.5)*4),brg:+(58+R()*4).toFixed(1),wdg:+(88+R()*4).toFixed(1),vib:+(2.0+R()*0.8).toFixed(2),res:ltp.level,tw:64})});
+  S.reads=ktU('U-1',sc==='fault').concat(ktU('U-2',false),tpU('U-1',sc==='fault'),sc==='drought'?[]:tpU('U-2',false));
+  if(sc!=='flood')S.reads=S.reads.concat(demoReads('bp','P-5',2,(t,T)=>{const f=t/T;if(sc==='drought'||(t%24>=8&&t%24<20))return {kw:Math.round(760+(R()-0.5)*20),pf:0.93,kv:3.39,a:140,brg:+(62+(sc==='fault'?10*f:0)+R()*3).toFixed(1),wdg:+(88+(sc==='fault'?40*f:0)+R()*3).toFixed(1),vib:+(2.2+R()).toFixed(2)};return null}));
+  ord.forEach(o=>{o.id='ORD-'+String(S.ordSeq++).padStart(3,'0');S.orders.push(o)});
+  if(sc==='fault'){S.issues.unshift({id:uid(),site:'kt',item:'U-1 bearing ร้อน + สั่นเพิ่ม (สาธิต)',detail:'brg 62→83 °C, vib 2.6→7.6 mm/s ใน 48 ชม. — ลดโหลด ตรวจน้ำมัน/แนวเพลา',prio:'สูง',owner:'หัวหน้ากะ',due:addDays(todayISO(),1),status:'open',date:todayISO()});
+    S.issues.unshift({id:uid(),site:'kt',item:'SE ลด 12% — ล้างตะแกรงดักขยะ (สาธิต)',detail:'SE 0.30 → 0.265 kWh/ลบ.ม. ใน 12 วัน',prio:'สูง',owner:'ทีมบำรุงรักษา',due:addDays(todayISO(),2),status:'open',date:todayISO()})}
+}
+let DEMO_EXIT=false;
+const _saveLS12=saveLS;saveLS=function(){if(DEMO_EXIT)return;if(S&&S.ui&&S.ui.demo){try{localStorage.setItem(LS_KEY+'_demo',JSON.stringify(S))}catch(e){}return}_saveLS12()};
+const _fetchWx12=fetchWx;fetchWx=function(f){if(S&&S.ui&&S.ui.demo){WX_MSG='โหมดสาธิต — ใช้ฝนสมมติ (ไม่ดึงพยากรณ์จริง)';try{wxStatusLine('wxStatusBrief');wxStatusLine('wxStatus')}catch(e){}return Promise.resolve()}return _fetchWx12(f)};
+function loadDemo(sc){if(!DEMO_SC[sc])return;if(!(S.ui&&S.ui.demo))_saveLS12();const ui=Object.assign({},S.ui);
+  S=defaultState();seedAll();S.ui=Object.assign(ui,{demo:{sc,at:Date.now()},site:sc==='drought'?'basin':'kt'});buildDemo(sc);
+  ctlDate=todayISO();ctlView='today';ctlSite=null;logSite=null;
+  $('siteSel').value=S.ui.site;recalcAll();buildTabs();goTab('demo');saveLS()}
+function exitDemo(){DEMO_EXIT=true;try{localStorage.removeItem(LS_KEY+'_demo')}catch(e){}location.reload()}
+function demoBanner(){const d=S.ui&&S.ui.demo;if(!d)return '';const c=DEMO_SC[d.sc];return `<div class="demobar noprint">🧪 <b>โหมดสาธิต — ข้อมูลสมมติ:</b> ${esc(c.t)} · ข้อมูลจริงของท่านถูกเก็บไว้ ไม่ถูกทับ <button class="btn sm" onclick="goTab('demo')">ดูผลสรุป</button><button class="btn sm warn" onclick="exitDemo()">⏏ ออกจากโหมดสาธิต (กลับข้อมูลจริง)</button></div>`}
+const _renderTab12=renderTab;renderTab=function(t){_renderTab12(t);const el=$('p-'+t);if(el&&S.ui&&S.ui.demo)el.insertAdjacentHTML('afterbegin',demoBanner())};
+function demoResults(){const out=[];const pk=proj();const keys=SITE_OF[pk==='basin'?'basin':pk];
+  keys.forEach(k=>{const sim=simOf(k);if(!sim)return;const s=S.sites[k];const st=statusOf(k,sim.st.h,sim);let mx=-1e9,mn=1e9,sp=0,E=0,Rv=0;sim.days.slice(0,7).forEach(d=>{mx=Math.max(mx,d.hMax||d.h);mn=Math.min(mn,d.h);sp+=d.sp||0;E+=d.kWh||0;Rv+=d.rev||0});
+    const pre=k==='kt'?RES.sim.ktPre:k==='bp'?RES.sim.bpPre:null;const C=checklist(k,todayISO());const al=C.filter(c=>c.st==='alarm').length,wn=C.filter(c=>c.st==='warn').length;
+    out.push(`<tr><td><b>${esc(s.short)}</b></td><td>${light(st)}</td><td class="num">${sx(sim.st.h,2)}</td><td class="num">${sx(mx,2)} / ${sx(mn,2)}</td><td class="num">${sx(sp)}</td><td class="num">${pre&&pre.need>0?sx(pre.need)+(pre.short>1000?' <span class="tag bad">ระบายไม่ทัน '+sx(pre.short)+'</span>':''):'–'}</td><td class="num">${s.units.length?sx(E):'–'}</td><td class="num">${s.units.length?sx(Rv):'–'}</td><td class="num">${al?`<span class="lt alarm">${al}</span>`:'0'} / ${wn?`<span class="lt warn">${wn}</span>`:'0'}</td></tr>`)});
+  return `<div class="tw"><table><thead><tr><th>อ่าง</th><th>สถานะ</th><th class="num">ระดับวันนี้</th><th class="num">สูงสุด / ต่ำสุด 7 วัน</th><th class="num">น้ำล้นฝาย 7 วัน (ลบ.ม.)</th><th class="num">ต้องระบายล่วงหน้า (ลบ.ม.)</th><th class="num">ไฟฟ้า 7 วัน (kWh)</th><th class="num">รายได้ 7 วัน (บาท)</th><th class="num">Alarm / เตือน วันนี้</th></tr></thead><tbody>${out.join('')}</tbody></table></div>`}
+RENDER.demo=function(){const d=S.ui&&S.ui.demo;let h=`<div class="card"><h2>🧪 จำลองสถานการณ์ด้วยข้อมูลสมมติ</h2><div class="lead">เลือกสถานการณ์เพื่อโหลดข้อมูลสมมติ 30 วัน (บันทึกเช้า 3 อ่าง + บันทึกรายชั่วโมง 2 วัน + ฝนพยากรณ์ 16 วัน + คำสั่ง) แล้วดูว่าเครื่องมือวิเคราะห์และแนะนำอะไร · ข้อมูลสมมติสร้างด้วยสมการเดียวกับเครื่องมือ (ตารางระดับ–ความจุ, ฝน–น้ำท่า, สมการฝาย, P = ρgQHη) · <b>ข้อมูลจริงถูกสำรองไว้</b> กด “ออกจากโหมดสาธิต” เพื่อกลับ</div>
+   <div class="grid g3">${Object.entries(DEMO_SC).map(([k,c])=>`<div class="kpi democard ${d&&d.sc===k?'on':''}"><div class="v" style="font-size:22px">${c.icon} ${esc(c.t)}</div><div class="small" style="margin:6px 0 8px">${esc(c.d)}</div><button class="btn sm" onclick="loadDemo('${k}')">${d&&d.sc===k?'↻ โหลดใหม่':'▶ โหลดสถานการณ์นี้'}</button></div>`).join('')}</div>
+   ${d?`<div class="row" style="margin-top:10px"><button class="btn warn" onclick="exitDemo()">⏏ ออกจากโหมดสาธิต (กลับข้อมูลจริง)</button></div>`:''}</div>`;
+  if(d){const c=DEMO_SC[d.sc];h+=`<div class="card"><h3>ผลที่เครื่องมือคำนวณได้ — ${esc(c.t)} (${esc(S.sites[SITE_OF[proj()==='basin'?'basin':proj()][0]].short)}${proj()==='basin'?' + ทุกอ่าง':''})</h3>${demoResults()}
+     <h3>ควรดูอะไรต่อ</h3><ol class="steps">${c.look.map(x=>`<li><button class="btn sm ghost" onclick="goTab('${x[0]}')">${esc((TABS.find(t=>t[0]===x[0])||[])[2]||x[0])} →</button> ${esc(x[1])}</li>`).join('')}</ol>
+     <div class="note small">เปลี่ยนโครงการที่มุมขวาบนเพื่อดูอ่างอื่น · ลองแก้ค่าในแท็บต่าง ๆ (เช่น นโยบายปล่อยน้ำ คำสั่ง หรือฝนกรอกเอง) แล้วดูผลเปลี่ยนทันที — ทุกอย่างในโหมดนี้ไม่กระทบข้อมูลจริง</div></div>
+     <div class="card"><h3>🖼 ภาพรวมสถานการณ์</h3><div class="figrow">${SITE_OF[proj()==='basin'?'basin':proj()].map(k=>`<div class="figcol">${svgGauge(k)}</div>`).join('')}</div></div>`}
+  else h+=`<div class="card note">ยังไม่ได้อยู่ในโหมดสาธิต — กดปุ่ม ▶ ด้านบนเพื่อเริ่ม</div>`;
+  return h};
+UPDATE.demo=function(){};
+TAB_GUIDE.demo=['ทดลองใช้เครื่องมือกับสถานการณ์สมมติ 3 แบบ (น้ำมาก / น้ำน้อย / เครื่องผิดปกติ) เพื่อฝึกเจ้าหน้าที่และดูผลลัพธ์ก่อนใช้ข้อมูลจริง',['เลือกสถานการณ์ → กด ▶ โหลด','ดูตารางผลสรุป แล้วกดปุ่ม “ควรดูอะไรต่อ” ไปยังแท็บที่เกี่ยวข้อง','กด ⏏ ออกจากโหมดสาธิต เพื่อกลับข้อมูลจริง'],'ข้อมูลสาธิตไม่ถูกบันทึกทับข้อมูลจริง (เก็บแยก) · รีโหลดหน้าเว็บ = กลับข้อมูลจริงอัตโนมัติ'];
+TABS.splice(TABS.findIndex(t=>t[0]==='help'),0,['demo','🧪','จำลองสถานการณ์']);
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 
